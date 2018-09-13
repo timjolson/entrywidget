@@ -3,6 +3,7 @@ from PyQt5.QtCore import pyqtProperty, Qt, QSize
 from generalUtils import isFunc
 from copy import copy
 from types import MethodType, SimpleNamespace
+from generalUtils import apply_default_args
 import logging
 
 
@@ -214,15 +215,11 @@ class AutoColorLineEdit(QWidget):
         :param isError: function to call that returns an error status
                 bool(isError())==True <-> there is an error [can pass numbers or text, etc.]
                 bool(isError())==False <-> no error [empty string, empty list, None, etc.]
-        :param onError: function to call when bool(isError())==True TODO: test error!=bool
+        :param onError: function to call when bool(isError())==True
         :param onTextChanged: function to call when text entry changes
         :param onEditingFinished: function to call when text editing is finished
         """
-        for k, v in kwargs.items():
-            assert k in self.defaultArgs.keys(), f"Keyword: '{k}' not available for {self.__class__.__name__}"
-        a = copy(self.defaultArgs)
-        a.update(kwargs)
-        a = SimpleNamespace(**a)
+        a = apply_default_args(kwargs, self.defaultArgs)
         self._inited = False  # flag to prevent a lot of extra work on setup
 
         # init QWidget
@@ -617,11 +614,7 @@ class LabelLineEdit(AutoColorLineEdit):
         :param label: string, text for QLabel
         :param onLabelClick: function to call when label is clicked (Left or Right button, maybe others too)
         """
-        a = copy(self.defaultArgs)
-        for k, v in kwargs.items():
-            assert k in self.defaultArgs.keys(), f"Keyword: '{k}' not available for {self.__class__.__name__}"
-        a.update(kwargs)
-        a = SimpleNamespace(**a)
+        a = apply_default_args(kwargs, self.defaultArgs)
         self._inited = False
 
         # noinspection PyArgumentList
@@ -718,11 +711,7 @@ class EntryWidget(LabelLineEdit):
         :param onOptionChanged: function to call when selected option is changed
         :param optionFixed: bool, whether the combobox is locked
         """
-        a = copy(self.defaultArgs)
-        for k, v in kwargs.items():
-            assert k in self.defaultArgs.keys(), f"Keyword: '{k}' not available for {self.__class__.__name__}"
-        a.update(kwargs)
-        a = SimpleNamespace(**a)
+        a = apply_default_args(kwargs, self.defaultArgs)
         self._inited = False
         self._selectedOption = ''
 
