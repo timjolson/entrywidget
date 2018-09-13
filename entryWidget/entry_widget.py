@@ -219,7 +219,7 @@ class AutoColorLineEdit(QWidget):
         :param onTextChanged: function to call when text entry changes
         :param onEditingFinished: function to call when text editing is finished
         """
-        a = apply_default_args(kwargs, self.defaultArgs)
+        _, a = apply_default_args(kwargs, self.defaultArgs)
         self._inited = False  # flag to prevent a lot of extra work on setup
 
         # init QWidget
@@ -614,7 +614,7 @@ class LabelLineEdit(AutoColorLineEdit):
         :param label: string, text for QLabel
         :param onLabelClick: function to call when label is clicked (Left or Right button, maybe others too)
         """
-        a = apply_default_args(kwargs, self.defaultArgs)
+        _, a = apply_default_args(kwargs, self.defaultArgs)
         self._inited = False
 
         # noinspection PyArgumentList
@@ -711,7 +711,7 @@ class EntryWidget(LabelLineEdit):
         :param onOptionChanged: function to call when selected option is changed
         :param optionFixed: bool, whether the combobox is locked
         """
-        a = apply_default_args(kwargs, self.defaultArgs)
+        _, a = apply_default_args(kwargs, self.defaultArgs)
         self._inited = False
         self._selectedOption = ''
 
