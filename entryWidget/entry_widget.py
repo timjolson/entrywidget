@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtProperty, Qt, QSize
 from generalUtils import isFunc
 from copy import copy
 from types import MethodType
-from generalUtils import apply_default_args, loggableQtName
+from generalUtils import applyDefaultArgs, loggableQtName
 import logging
 
 
@@ -195,8 +195,8 @@ class AutoColorLineEdit(QWidget):
     defaultColors = copy(_LineEditHelper.defaultColors)
 
     defaultArgs = \
-        {'objectName': '', 'startPrompt': '', 'colors': copy(_LineEditHelper.defaultColors), 'liveErrorChecking': True,
-         'readOnly': False, 'isError': (lambda x: x.getError()),
+        {'objectName': '', 'startPrompt': '', 'colors': defaultColors, 'liveErrorChecking': True,
+         'readOnly': False, 'isError': (lambda x: x.hasError()),
          'onError': (lambda x: logging.debug(x.name + 'default onError()')),
          'onTextChanged': (lambda x: logging.debug(x.name + 'default onTextChanged()')),
          'onEditingFinished': (lambda x: logging.debug(x.name + 'default onEditingFinished()'))
@@ -220,7 +220,7 @@ class AutoColorLineEdit(QWidget):
         :param onTextChanged: function to call when text entry changes
         :param onEditingFinished: function to call when text editing is finished
         """
-        _, a = apply_default_args(kwargs, self.defaultArgs)
+        _, a = applyDefaultArgs(kwargs, self.defaultArgs)
         self._inited = False  # flag to prevent a lot of extra work on setup
 
         # init QWidget
@@ -289,7 +289,7 @@ class AutoColorLineEdit(QWidget):
                      # 'refreshColors', 'getStyleString', 'makeStyleString',
                      '_isColorDict', '_isColorTuple', 'defaultColors', 'hasError']:
             setattr(self, attr, self._editBox.__getattribute__(attr))
-
+        
     def getError(self):
         """Get error status.
 
@@ -600,7 +600,7 @@ class LabelLineEdit(AutoColorLineEdit):
         :param label: string, text for QLabel
         :param onLabelClick: function to call when label is clicked (Left or Right button, maybe others too)
         """
-        _, a = apply_default_args(kwargs, self.defaultArgs)
+        _, a = applyDefaultArgs(kwargs, self.defaultArgs)
         self._inited = False
 
         # noinspection PyArgumentList
@@ -697,7 +697,7 @@ class EntryWidget(LabelLineEdit):
         :param onOptionChanged: function to call when selected option is changed
         :param optionFixed: bool, whether the combobox is locked
         """
-        _, a = apply_default_args(kwargs, self.defaultArgs)
+        _, a = applyDefaultArgs(kwargs, self.defaultArgs)
         self._inited = False
         self._selectedOption = ''
 
