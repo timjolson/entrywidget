@@ -2,8 +2,8 @@ from PyQt5.QtWidgets import QLineEdit, QLabel, QComboBox, QWidget, QSizePolicy, 
 from PyQt5.QtCore import pyqtProperty, Qt, QSize
 from generalUtils import isFunc
 from copy import copy
-from types import MethodType, SimpleNamespace
-from generalUtils import apply_default_args
+from types import MethodType
+from generalUtils import apply_default_args, loggableQtName
 import logging
 
 
@@ -190,6 +190,7 @@ class AutoColorLineEdit(QWidget):
 
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
+    name = loggableQtName
 
     defaultColors = copy(_LineEditHelper.defaultColors)
 
@@ -288,21 +289,6 @@ class AutoColorLineEdit(QWidget):
                      # 'refreshColors', 'getStyleString', 'makeStyleString',
                      '_isColorDict', '_isColorTuple', 'defaultColors', 'hasError']:
             setattr(self, attr, self._editBox.__getattribute__(attr))
-
-    @property
-    def name(self):
-        """Property to identify instance when logging or when searching in Qt for this widget.
-        See objectName for Qt Objects.
-
-        :return: string,
-            objectName if it is set, class name if not; plus ending colon ':'
-            e.g. 'objectName:'
-        """
-        n = self.objectName()
-        if n is None or n == '':
-            return str(self.__class__.__name__ + ':')
-        else:
-            return n + ':'
 
     def getError(self):
         """Get error status.
