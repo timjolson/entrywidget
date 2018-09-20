@@ -26,8 +26,6 @@ def test_constructor_start_prompt(qtbot):
     assert widget.text() == test_strings[1]
     assert widget._editBox.text() == test_strings[1]
 
-    with pytest.raises(AssertionError):
-        widget = LabelLineEdit(startPrompt=test_strings[-1])
 
 def test_constructor_readOnly(qtbot):
     widget = LabelLineEdit(readOnly=True)
@@ -40,8 +38,6 @@ def test_constructor_readOnly(qtbot):
     assert widget._editBox.isReadOnly() is False
     assert widget.isReadOnly() is False
 
-    with pytest.raises(AssertionError):
-        widget = LabelLineEdit(readOnly=1)
 
 def test_constructor_colors(qtbot):
     widget = LabelLineEdit(colors=test_color_dict)
@@ -84,8 +80,6 @@ def test_constructor_onTextChanged(qtbot):
     assert widget._label.text() == test_strings[0]
     assert widget.getLabel() == test_strings[0]
 
-    with pytest.raises(AssertionError):
-        widget.setText(test_strings[-1])
 
 def test_constructor_onEditingFinished(qtbot):
     widget = LabelLineEdit(label=test_strings[0], onEditingFinished=change_label_on_typing)
@@ -116,8 +110,6 @@ def test_constructor_onEditingFinished(qtbot):
     assert widget._label.text() == test_strings[0]
     assert widget.getLabel() == test_strings[0]
 
-    with pytest.raises(AssertionError):
-        widget.setText(test_strings[-1])
 
 def test_constructor_isError(qtbot):
     widget = LabelLineEdit(isError=check_error_typed)
@@ -145,8 +137,6 @@ def test_constructor_isError(qtbot):
     assert widget.getError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
 
-    with pytest.raises(AssertionError):
-        widget = LabelLineEdit(isError=test_strings)
 
 def test_constructor_onError(qtbot):
     widget = LabelLineEdit(onError=set_title_on_error)
@@ -158,8 +148,6 @@ def test_constructor_onError(qtbot):
     widget.setError(True)
     assert widget.windowTitle() == 'ERROR'
 
-    with pytest.raises(AssertionError):
-        widget = LabelLineEdit(onError=test_strings)
 
 def test_constructor_label(qtbot):
     widget = LabelLineEdit(label=test_strings[1])
@@ -169,8 +157,6 @@ def test_constructor_label(qtbot):
     assert widget.getLabel() == test_strings[1]
     assert widget._label.text() == test_strings[1]
 
-    with pytest.raises(AssertionError):
-        widget = LabelLineEdit(label=test_strings[-1])
 
 def test_constructor_onLabelClick(qtbot):
     widget = LabelLineEdit(onLabelClick=lock_unlock_entry_mouse)
@@ -183,8 +169,6 @@ def test_constructor_onLabelClick(qtbot):
     assert widget._editBox.isReadOnly() is False
     assert widget.isReadOnly() is False
 
-    with pytest.raises(AssertionError):
-        widget = LabelLineEdit(onLabelClick=test_strings)
 
 def test_embed_widgets(qtbot):
     from PyQt5.QtWidgets import QVBoxLayout, QWidget

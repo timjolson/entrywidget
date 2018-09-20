@@ -26,8 +26,6 @@ def test_constructor_start_prompt(qtbot):
     assert widget.text() == test_strings[1]
     assert widget._editBox.text() == test_strings[1]
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(startPrompt=test_strings[-1])
 
 def test_constructor_readOnly(qtbot):
     widget = EntryWidget(readOnly=True)
@@ -40,8 +38,6 @@ def test_constructor_readOnly(qtbot):
     assert widget._editBox.isReadOnly() is False
     assert widget.isReadOnly() is False
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(readOnly=1)
 
 def test_constructor_colors(qtbot):
     widget = EntryWidget(colors=test_color_dict)
@@ -84,8 +80,6 @@ def test_constructor_onTextChanged(qtbot):
     assert widget._label.text() == test_strings[0]
     assert widget.getLabel() == test_strings[0]
 
-    with pytest.raises(AssertionError):
-        widget.setText(test_strings[-1])
 
 def test_constructor_onEditingFinished(qtbot):
     widget = EntryWidget(onEditingFinished=change_label_on_typing)
@@ -116,8 +110,6 @@ def test_constructor_onEditingFinished(qtbot):
     assert widget._label.text() == test_strings[0]
     assert widget.getLabel() == test_strings[0]
 
-    with pytest.raises(AssertionError):
-        widget.setText(test_strings[-1])
 
 def test_constructor_isError(qtbot):
     widget = EntryWidget(isError=check_error_typed)
@@ -145,8 +137,6 @@ def test_constructor_isError(qtbot):
     assert widget.getError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(isError=test_strings)
 
 def test_constructor_onError(qtbot):
     widget = EntryWidget(onError=set_title_on_error)
@@ -158,8 +148,6 @@ def test_constructor_onError(qtbot):
     widget.setError(True)
     assert widget.windowTitle() == 'ERROR'
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(onError=test_strings)
 
 def test_constructor_label(qtbot):
     widget = EntryWidget(label=test_strings[1])
@@ -167,19 +155,12 @@ def test_constructor_label(qtbot):
     assert widget.getLabel() == test_strings[1]
     assert widget._label.text() == test_strings[1]
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(label=test_strings[-1])
 
 def test_constructor_options(qtbot):
     widget = EntryWidget(options=test_options_good)
     show(locals())
     assert widget.getOptions() == test_options_good
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(options=test_options_bad)
-
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(options=test_strings[0])
 
 def test_constructor_optionFixed(qtbot):
     widget = EntryWidget(optionFixed=True)
@@ -192,8 +173,6 @@ def test_constructor_optionFixed(qtbot):
     assert widget._optionList.isEnabled() is True
     assert widget._optionFixed is False
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(optionFixed=1)
 
 def test_constructor_onLabelClick(qtbot):
     widget = EntryWidget(onLabelClick=lock_unlock_entry_mouse)
@@ -216,8 +195,6 @@ def test_constructor_onLabelClick(qtbot):
     assert widget._optionList.isEnabled() is True
     assert widget._optionFixed is False
 
-    with pytest.raises(AssertionError):
-        widget = EntryWidget(onLabelClick=test_strings)
 
 def test_constructor_onOptionChanged(qtbot):
     widget = EntryWidget(options=test_options_colors, onOptionChanged=change_color_on_option)
@@ -232,11 +209,6 @@ def test_constructor_onOptionChanged(qtbot):
     widget.setSelected(test_options_colors[2])
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_options_colors[2]
 
-    with pytest.raises(AssertionError):
-        widget.setSelected(test_options_colors[0]+'a')
-
-    with pytest.raises(AssertionError):
-        widget.setSelected(test_options_colors)
 
 def test_embed_widgets(qtbot):
     from PyQt5.QtWidgets import QVBoxLayout, QWidget

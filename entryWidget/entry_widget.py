@@ -21,8 +21,6 @@ class _LineEditHelper(QLineEdit):
     }
 
     def __init__(self, parent=None):
-        assert isinstance(parent, (type(None), QWidget)), "'parent' must be None, or QWidget"
-
         super().__init__(parent)
         self._error = False
         self._styleString = ''
@@ -181,7 +179,7 @@ class AutoColorLineEdit(QWidget):
         obj.setColors()
 
     Extended functionality:
-        Attached callbacks can be automatically called upon different events.
+        Attached callbacks will be automatically called upon different events.
         When called, the functions are passed the calling instance.
         Callbacks can be set by __init__ or by set* methods:
             setIsError, setOnError, setOnTextChanged, setOnEditingFinished
@@ -213,6 +211,8 @@ class AutoColorLineEdit(QWidget):
         :param liveErrorChecking: bool, whether error checking occurs after every
                 text change/keystroke (=True) or only after text editing is
                 finished [return/enter/tab pressed, or click out of box] (=False)
+
+        Optional callbacks (upon calling, widget is provided as argument)
         :param isError: function to call that returns an error status
                 bool(isError())==True <-> there is an error [can pass numbers or text, etc.]
                 bool(isError())==False <-> no error [empty string, empty list, None, etc.]
@@ -220,11 +220,9 @@ class AutoColorLineEdit(QWidget):
         :param onTextChanged: function to call when text entry changes
         :param onEditingFinished: function to call when text editing is finished
         """
-        _, a = applyDefaultArgs(kwargs, self.defaultArgs)
+        _, a = applyDefaultArgs(kwargs, AutoColorLineEdit.defaultArgs)
         self._inited = False  # flag to prevent a lot of extra work on setup
 
-        # init QWidget
-        assert isinstance(parent, (type(None), QWidget)), "'parent' must be None, or QWidget"
         super().__init__(parent)
         # put QLineEdit in a layout, connect slots, import attrs from _LineEditHelper
         self._setupUI()
@@ -241,12 +239,6 @@ class AutoColorLineEdit(QWidget):
             colors = copy(self.defaultColors)
         self._colors = colors
 
-        # check types
-        assert isinstance(a.startPrompt, str), 'startPrompt takes a string'
-        assert isinstance(a.liveErrorChecking, bool), 'liveErrorChecking takes a boolean'
-        assert isinstance(a.readOnly, bool), 'readOnly takes a boolean'
-        assert isinstance(a.objectName, str), 'objectName takes a string'
-
         # store backend
         if a.objectName:
             self.setObjectName(a.objectName)
@@ -260,7 +252,6 @@ class AutoColorLineEdit(QWidget):
 
         if self.__class__.__name__ == 'AutoColorLineEdit':
             self._inited = True
-            logging.debug(self.name + "---- Initialized ----")
 
         # set the initial text and readOnly
         self.setText(a.startPrompt, a.readOnly)
@@ -289,7 +280,7 @@ class AutoColorLineEdit(QWidget):
                      # 'refreshColors', 'getStyleString', 'makeStyleString',
                      '_isColorDict', '_isColorTuple', 'defaultColors', 'hasError']:
             setattr(self, attr, self._editBox.__getattribute__(attr))
-        
+
     def getError(self):
         """Get error status.
 
@@ -326,7 +317,6 @@ class AutoColorLineEdit(QWidget):
         :param manual: bool, whether colors are manually set or not.
         :return:
         """
-        assert isinstance(manual, bool), 'provide bool for manualColors'
         self._manualColors = manual
 
     def setLiveErrorChecking(self, mode):
@@ -338,7 +328,6 @@ class AutoColorLineEdit(QWidget):
         :return:
         """
         logging.debug(self.name + f'setLiveErrorChecking({str(mode)})')
-        assert isinstance(mode, bool), 'provide boolean status for liveErrorChecking'
 
         self._liveErrorChecking = mode
         if mode is True and self._inited is True:
@@ -415,7 +404,6 @@ class AutoColorLineEdit(QWidget):
         :return:
         """
         logging.debug(self.name + f'setReadOnly({str(readOnly)})')
-        assert isinstance(readOnly, bool), 'provide boolean status for readOnly'
 
         # change setting
         self._editBox.setReadOnly(readOnly)
@@ -428,20 +416,17 @@ class AutoColorLineEdit(QWidget):
 
         :param status: box's enabled status
             True: selectable (editability dictated by readOnly)
-            False: uneditable and unselectable
+            False: unselectable, uneditable
         :return:
         """
         logging.debug(self.name + f'setEnabled({str(status)})')
-        assert isinstance(status, bool), 'provide boolean to setEnabled'
 
         if status is False:
             self._editBox.setFocusPolicy(Qt.NoFocus)
-            self.setReadOnly(True)
             self._editBox.setEnabled(status)
         else:
             self._editBox.setEnabled(status)
             self._editBox.setFocusPolicy(Qt.StrongFocus)
-            self.setReadOnly(self.isReadOnly())
 
         self.refreshColors()
 
@@ -454,7 +439,6 @@ class AutoColorLineEdit(QWidget):
         :return:
         """
         logging.debug(self.name + f'setText(\'{str(text)}\', {str(readOnly)})')
-        assert isinstance(text, str), 'provide setText string'
 
         # change text
         self._editBox.setText(text)
@@ -495,7 +479,6 @@ class AutoColorLineEdit(QWidget):
         :return:
         """
         logging.debug(self.name + 'setOnTextChanged()')
-        assert isFunc(func), 'provide function for onTextChanged'
 
         # change method
         self.onTextChanged = func if isinstance(func, MethodType) else MethodType(func, self)
@@ -525,7 +508,6 @@ class AutoColorLineEdit(QWidget):
             e.g. func(self)
         """
         logging.debug(self.name + 'setOnEditingFinished()')
-        assert isFunc(func), 'provide function for onEditingFinished'
 
         # change method
         self.onEditingFinished = func if isinstance(func, MethodType) else MethodType(func, self)
@@ -540,7 +522,6 @@ class AutoColorLineEdit(QWidget):
         :return:
         """
         logging.debug(self.name + 'setIsError()')
-        assert isFunc(func), 'provide function for isError'
 
         # change method
         self.isError = func if isinstance(func, MethodType) else MethodType(func, self)
@@ -558,7 +539,6 @@ class AutoColorLineEdit(QWidget):
         :return:
         """
         logging.debug(self.name + 'setOnError()')
-        assert isFunc(func), 'provide a function for onError'
 
         # change method
         self.onError = func if isinstance(func, MethodType) else MethodType(func, self)
@@ -587,37 +567,31 @@ class LabelLineEdit(AutoColorLineEdit):
 
     defaultColors = copy(_LineEditHelper.defaultColors)
 
-    defaultArgs = copy(AutoColorLineEdit.defaultArgs)
-    defaultArgs.update(
+    defaultArgs = \
         {'label': 'Label',
          'onLabelClick': (lambda x, y: logging.debug(x.name + 'default onLabelClick()')),
          }
-    )
 
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, parent=None, label=defaultArgs['label'], onLabelClick=defaultArgs['onLabelClick'], **kwargs):
         """All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
 
         :param label: string, text for QLabel
-        :param onLabelClick: function to call when label is clicked (Left or Right button, maybe others too)
-        """
-        _, a = applyDefaultArgs(kwargs, self.defaultArgs)
-        self._inited = False
 
-        # noinspection PyArgumentList
-        args = {k: v for k, v in kwargs.items() if k in AutoColorLineEdit.defaultArgs.keys()}
-        map(kwargs.pop, args.keys())
-        super().__init__(parent, **args)
+        Optional callback:
+        :param onLabelClick: function to call when label is clicked (Left or Right button, maybe others too)
+
+        Also accepts all keyword arguments for an AutoColorLineEdit.
+        """
+        super().__init__(parent, **kwargs)
 
         # attach custom functions for label and combobox
-        self.setOnLabelClick(a.onLabelClick)
+        self.setOnLabelClick(onLabelClick)
 
         if self.__class__.__name__ == 'LabelLineEdit':
             self._inited = True
-            logging.debug(self.name + "---- Initialized ----")
-
 
         # set initial values
-        self.setLabel(a.label)
+        self.setLabel(label)
 
     def _setupUI(self):
         super()._setupUI()
@@ -638,7 +612,6 @@ class LabelLineEdit(AutoColorLineEdit):
         :return:
         """
         logging.debug(self.name + 'setOnLabelClick()')
-        assert isFunc(func), 'provide a function for onLabelClick'
         self.onLabelClick = func if isinstance(func, MethodType) else MethodType(func, self)
         self._label.mousePressEvent = self.onLabelClick
 
@@ -649,7 +622,6 @@ class LabelLineEdit(AutoColorLineEdit):
         :return:
         """
         logging.debug(self.name + f'setLabel(\'{str(text)}\')')
-        assert isinstance(text, str), 'provide setLabel string'
         self._label.setText(text)
 
     def getLabel(self):
@@ -683,41 +655,39 @@ class EntryWidget(LabelLineEdit):
 
     defaultColors = copy(_LineEditHelper.defaultColors)
 
-    defaultArgs = copy(LabelLineEdit.defaultArgs)
-    defaultArgs.update(
+    defaultArgs = \
         {'options':list(['opt1', 'opt2']), 'optionFixed':False,
          'onOptionChanged': (lambda x: logging.debug(x.name + 'default onOptionChanged()'))
          }
-    )
 
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, parent=None, options=defaultArgs['options'], optionFixed=defaultArgs['optionFixed'],
+                 onOptionChanged=defaultArgs['onOptionChanged'], **kwargs):
         """All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
 
         :param options: list of strings, selectable options in QComboBox
-        :param onOptionChanged: function to call when selected option is changed
         :param optionFixed: bool, whether the combobox is locked
+
+        Optional callback:
+        :param onOptionChanged: function to call when selected option is changed
+
+        Also accepts all keyword arguments for a LabelLineEdit.
         """
-        _, a = applyDefaultArgs(kwargs, self.defaultArgs)
         self._inited = False
         self._selectedOption = ''
 
-        # noinspection PyArgumentList
-        args = {k: v for k, v in kwargs.items() if k in LabelLineEdit.defaultArgs.keys()}
-        map(kwargs.pop, args.keys())
-        super().__init__(parent, **args)
+        super().__init__(parent, **kwargs)
 
         # set initial values
-        self.setOptions(a.options)
-        self.setOptionFixed(a.optionFixed)
+        self.setOptions(options)
+        self.setOptionFixed(optionFixed)
 
         # attach custom functions for label and combobox
-        self.setOnOptionChanged(a.onOptionChanged)
+        self.setOnOptionChanged(onOptionChanged)
 
         if self.__class__.__name__ == 'EntryWidget':
             self._inited = True
-            logging.debug(self.name + "---- Initialized ----")
 
-        self.setSelected(a.options[0], a.optionFixed)
+        self.setSelected(options[0], optionFixed)
 
     def _setupUI(self):
         super()._setupUI()
@@ -748,8 +718,6 @@ class EntryWidget(LabelLineEdit):
         :return:
         """
         logging.debug(self.name + f'setOptions({str(options)})')
-        assert isinstance(options, (set, list, tuple)), 'provide group of selection _options'
-        assert all(isinstance(o, str) for o in options)
         self._optionList.clear()
         self._optionList.addItems(set(options))
         self._options = options
@@ -766,7 +734,6 @@ class EntryWidget(LabelLineEdit):
         :return:
         """
         logging.debug(self.name + f'setFixedOption({str(fixed)})')
-        assert isinstance(fixed, bool), 'provide boolean status for .fixedOption'
 
         self._optionList.setEnabled(not fixed)
         self._optionFixed = fixed
@@ -815,8 +782,6 @@ class EntryWidget(LabelLineEdit):
         :return:
         """
         logging.debug(self.name + f'setSelected(\'{str(selected)}\')')
-        assert isinstance(selected, str), 'provide selected option string'
-        assert isinstance(fixed, (bool, type(None))), "provide bool for 'fixed'"
 
         i = self._optionList.findText(selected, Qt.MatchFixedString)
         assert i >= 0, "'" + selected + "' is not in the option list"
@@ -837,7 +802,6 @@ class EntryWidget(LabelLineEdit):
         :return:
         """
         logging.debug(self.name + 'setOnOptionChanged()')
-        assert isFunc(func), 'provide a function for onOptionChanged'
         self.onOptionChanged = func if isinstance(func, MethodType) else MethodType(func, self)
 
 

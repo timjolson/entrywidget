@@ -143,8 +143,6 @@ def test_setText(qtbot):
     show(locals())
     assert widget.text() == test_strings[1]
 
-    with pytest.raises(AssertionError):
-        widget.setText(test_strings[-1])
 
 def test_setReadOnly(qtbot):
     widget = AutoColorLineEdit()
@@ -157,8 +155,6 @@ def test_setReadOnly(qtbot):
     widget.setReadOnly(False)
     assert widget.isReadOnly() is False
 
-    with pytest.raises(AssertionError):
-        widget.setReadOnly(1)
 
 def test_setColors(qtbot):
     widget = AutoColorLineEdit()
@@ -197,9 +193,6 @@ def test_setOnTextChanged(qtbot):
     assert widget.text() == test_strings[0]
     assert widget.windowTitle() == test_strings[0]
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit()
-        widget.setOnTextChanged(test_strings)
 
 def test_setOnEditingFinished(qtbot):
     widget = AutoColorLineEdit()
@@ -221,9 +214,6 @@ def test_setOnEditingFinished(qtbot):
     assert widget.text() == test_strings[0]
     assert widget.windowTitle() == test_strings[0]
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit()
-        widget.setOnEditingFinished(test_strings)
 
 def test_setError(qtbot):
     widget = AutoColorLineEdit()
@@ -270,9 +260,6 @@ def test_setIsError(qtbot):
     assert widget.getError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit()
-        widget.setIsError(test_strings)
 
 def test_setOnError(qtbot):
     widget = AutoColorLineEdit()
@@ -285,10 +272,6 @@ def test_setOnError(qtbot):
     widget.setError(True)
     assert widget.windowTitle() == 'ERROR'
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit()
-        show(locals())
-        widget.setOnError(test_strings)
 
 def test_liveErrorChecking(qtbot):
     widget = AutoColorLineEdit()
@@ -319,7 +302,4 @@ def test_liveErrorChecking(qtbot):
     qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Backspace)
     assert widget.getError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
-
-    with pytest.raises(AssertionError):
-        widget.setLiveErrorChecking(1)
 

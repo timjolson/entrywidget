@@ -25,8 +25,6 @@ def test_constructor_start_prompt(qtbot):
     show(locals())
     assert widget.text() == test_strings[1]
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit(startPrompt=test_strings[-1])
 
 def test_constructor_readOnly(qtbot):
     widget = AutoColorLineEdit(readOnly=True)
@@ -37,8 +35,6 @@ def test_constructor_readOnly(qtbot):
     show(locals())
     assert widget.isReadOnly() is False
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit(readOnly=1)
 
 def test_constructor_colors(qtbot):
     widget = AutoColorLineEdit(colors=test_color_dict)
@@ -72,8 +68,6 @@ def test_constructor_onTextChanged(qtbot):
     assert widget.text() == 'ab'
     assert widget.windowTitle() == 'ab'
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit(onTextChanged=test_strings[-1])
 
 def test_constructor_onEditingFinished(qtbot):
     widget = AutoColorLineEdit(onEditingFinished=change_title_on_typing)
@@ -90,8 +84,6 @@ def test_constructor_onEditingFinished(qtbot):
     assert widget.text() == 'ab'
     assert widget.windowTitle() == 'ab'
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit(onEditingFinished=test_strings[-1])
 
 def test_constructor_isError(qtbot):
     widget = AutoColorLineEdit(isError=check_error_typed)
@@ -118,8 +110,6 @@ def test_constructor_isError(qtbot):
     assert widget.getError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
 
-    with pytest.raises(AssertionError):
-        widget = AutoColorLineEdit(isError=test_strings)
 
 def test_constructor_onError(qtbot):
     widget = AutoColorLineEdit(onError=set_title_on_error)
