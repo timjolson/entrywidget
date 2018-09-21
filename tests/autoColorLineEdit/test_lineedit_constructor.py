@@ -24,16 +24,20 @@ def test_constructor_start_prompt(qtbot):
     widget = AutoColorLineEdit(startPrompt=test_strings[1])
     show(locals())
     assert widget.text() == test_strings[1]
+    assert widget._editBox.text() == test_strings[1]
+    assert widget.text == widget._editBox.text
 
 
 def test_constructor_readOnly(qtbot):
     widget = AutoColorLineEdit(readOnly=True)
     show(locals())
     assert widget.isReadOnly() is True
+    assert widget._editBox.isReadOnly() is True
 
     widget = AutoColorLineEdit(readOnly=False)
     show(locals())
     assert widget.isReadOnly() is False
+    assert widget._editBox.isReadOnly() is False
 
 
 def test_constructor_colors(qtbot):
@@ -178,8 +182,6 @@ def test_style_string(qtbot):
     assert getCurrentColor(widget._editBox, 'Background')[0][0] == 'red'
 
     assert string == widget._editBox.getStyleString()
-
-    assert getCurrentColor(widget._editBox, 'Background')[0][0] == 'red'
 
     widget.setText('a')
     assert getCurrentColor(widget._editBox, 'Background')[0][0] == 'black'

@@ -21,121 +21,116 @@ def test_setAutoColors(qtbot):
     widget = AutoColorLineEdit()
     show(locals())
     widget.setAutoColors(test_color_dict_good)
+
+# check colors when blank, enabled
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['blank'][0]
     assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['blank'][1]
-    qtbot.keyClick(widget._editBox, 'a')
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['default'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['default'][1]
+# with error
     widget.setError(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error'][1]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error'][1]
+# error & readonly
     widget.setReadOnly(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error-readonly'][1]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error-readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error-readonly'][1]
+# readonly
+    widget.setError(False)
+    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['readonly'][1]
+# regular
+    widget.setReadOnly(False)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['blank'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['blank'][1]
+
+
+# check colors when blank, disabled
     widget.setEnabled(False)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error-readonly'][1]
+    assert getCurrentColor(widget._editBox, 'Window')[1] ==  test_color_dict_good['disabled'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['disabled'][1]
+# with error
+    widget.setError(True)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error-readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error-readonly'][1]
+# error & readonly
+    widget.setReadOnly(True)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error-readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error-readonly'][1]
+# readonly
     widget.setError(False)
     assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['disabled'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['disabled'][1]
-    widget.setEnabled(True)
-    widget.setError(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error-readonly'][1]
-    widget.setError(False)
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['disabled'][1]
+# regular
     widget.setReadOnly(False)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['default'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['default'][1]
-    qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Backspace)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['blank'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['blank'][1]
-    widget.setReadOnly(True)
-    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['readonly'][1]
+    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['disabled'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['disabled'][1]
 
+
+
+    widget.setReadOnly(False)
+    widget.setEnabled(True)
+    qtbot.keyClick(widget._editBox, 'a')
+# check colors when not blank, enabled
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['default'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['default'][1]
+# with error
+    widget.setError(True)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error'][1]
+# error & readonly
+    widget.setReadOnly(True)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error-readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error-readonly'][1]
+# readonly
+    widget.setError(False)
+    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['readonly'][1]
+# regular
+    widget.setReadOnly(False)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['default'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['default'][1]
+
+
+# check colors when not blank, disabled
+    widget.setEnabled(False)
+    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['disabled'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['disabled'][1]
+# with error
+    widget.setError(True)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error-readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error-readonly'][1]
+# error & readonly
+    widget.setReadOnly(True)
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict_good['error-readonly'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['error-readonly'][1]
+# readonly
+    widget.setError(False)
+    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['disabled'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['disabled'][1]
+# regular
+    widget.setReadOnly(False)
+    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['disabled'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict_good['disabled'][1]
+
+
+# check auto colors after manual colors
     widget = AutoColorLineEdit()
     show(locals())
     widget.setColors(test_color_tuple)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_tuple[0]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_tuple[0]
     assert widget._manualColors is True
     widget.setAutoColors()
     assert widget._manualColors is False
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['blank'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['blank'][1]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict['blank'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict['blank'][1]
     qtbot.keyClick(widget._editBox, 'a')
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['default'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['default'][1]
-    widget.setError(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['error'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['error'][1]
-    widget.setReadOnly(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['error-readonly'][1]
-    widget.setEnabled(False)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['error-readonly'][1]
-    widget.setError(False)
-    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict['disabled'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['disabled'][1]
-    widget.setEnabled(True)
-    widget.setError(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['error-readonly'][1]
-    widget.setError(False)
-    widget.setReadOnly(False)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['default'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['default'][1]
-    qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Backspace)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict['blank'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['blank'][1]
-    widget.setReadOnly(True)
-    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict['readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict['readonly'][1]
-
-    widget = AutoColorLineEdit(colors=test_color_dict_good)
-    show(locals())
-    widget.setColors(test_color_tuple_good)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_tuple_good[0]
-    assert widget._manualColors is True
-    widget.setAutoColors()
-    assert widget._manualColors is False
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['blank'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['blank'][1]
-    qtbot.keyClick(widget._editBox, 'a')
-
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['default'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['default'][1]
-    widget.setError(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error'][1]
-    widget.setReadOnly(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error-readonly'][1]
-    widget.setEnabled(False)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error-readonly'][1]
-    widget.setError(False)
-    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['disabled'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['disabled'][1]
-    widget.setEnabled(True)
-    widget.setError(True)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['error-readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['error-readonly'][1]
-    widget.setError(False)
-    widget.setReadOnly(False)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['default'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['default'][1]
-    qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Backspace)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_dict_good['blank'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['blank'][1]
-    widget.setReadOnly(True)
-    assert getCurrentColor(widget._editBox, 'Window')[1] == test_color_dict_good['readonly'][0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_dict_good['readonly'][1]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_dict['default'][0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_dict['default'][1]
 
     with pytest.raises(AssertionError):
         widget.setAutoColors(test_color_tuple)
     with pytest.raises(AssertionError):
         widget.setAutoColors(test_color_dict_bad)
+
 
 def test_setText(qtbot):
     widget = AutoColorLineEdit()
@@ -162,15 +157,13 @@ def test_setColors(qtbot):
     assert widget._manualColors is False
 
     widget.setColors(test_color_tuple)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_tuple[0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_tuple[1]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_tuple[0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_tuple[1]
     assert widget._manualColors is True
 
-    widget = AutoColorLineEdit()
-    show(locals())
     widget.setColors(test_color_tuple_good)
-    assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_color_tuple_good[0]
-    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] ==  test_color_tuple_good[1]
+    assert getCurrentColor(widget._editBox, 'Window')[0][0] == test_color_tuple_good[0]
+    assert getCurrentColor(widget._editBox, 'WindowText')[0][0] == test_color_tuple_good[1]
     assert widget._manualColors is True
 
     with pytest.raises(AssertionError):
@@ -219,17 +212,17 @@ def test_setError(qtbot):
     widget = AutoColorLineEdit()
     show(locals())
     widget.setError(True)
-    assert widget.getError() == widget.isError() is True
+    assert widget.getError() and widget.hasError() is True and widget.isError() is True
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['error'][0]
     widget.setError(False)
-    assert widget.getError() == widget.isError() is False
+    assert widget.getError() is False and widget.hasError() is False and widget.isError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['blank'][0]
 
     widget.setError(True)
-    assert widget.getError() == widget.isError() is True
+    assert widget.getError() and widget.hasError() is True and widget.isError() is True
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['error'][0]
     widget.setError(False)
-    assert widget.getError() == widget.isError() is False
+    assert widget.getError() is False and widget.hasError() is False and widget.isError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['blank'][0]
 
 def test_setIsError(qtbot):
@@ -244,20 +237,21 @@ def test_setIsError(qtbot):
     assert widget.getError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
 
-    widget = AutoColorLineEdit(liveErrorChecking=False)
-    widget.setIsError(check_error_typed)
-    show(locals())
+    widget.setText('')
+    widget.setLiveErrorChecking(False)
     qtbot.keyClicks(widget._editBox, 'error')
-    assert widget.getError() is False
+    assert widget.getError() is False and widget.hasError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
     qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Return)
+    assert widget.hasError()
     assert widget.getError()
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['error'][0]
     qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Backspace)
-    assert widget.getError()
+    assert widget.hasError() and widget.getError()
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['error'][0]
+    assert widget.hasError() and widget.getError()
     qtbot.keyPress(widget._editBox, QtCore.Qt.Key_Return)
-    assert widget.getError() is False
+    assert widget.getError() is False and widget.hasError() is False
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  widget.defaultColors['default'][0]
 
 
