@@ -9,7 +9,7 @@ import logging
 
 class _LineEditHelper(QLineEdit):
     """
-    QLineEdit subclass, with additional 'error' pyqtProperty and .refreshColors()
+    QLineEdit subclass, with additional 'error' pyqtProperty with helpers.
     """
     defaultColors = {
         'error-readonly': ('orangered', 'white'),
@@ -31,6 +31,15 @@ class _LineEditHelper(QLineEdit):
 
     @error.setter
     def error(self, status):
+        """pyqtProperty, bool. Used for automatic formatting.
+        Pass any type, such that:
+         bool(status) == True for an error
+         bool(status) == False for no error
+
+        :param status: any, current error status
+            self.hasError() = self.error = bool(self.isError())
+        :return: bool(self.isError())
+        """
         self._error = status
         if bool(status):
             self.setToolTip('Error:\n' + str(status))
@@ -39,19 +48,32 @@ class _LineEditHelper(QLineEdit):
         self.refreshColors()
 
     def hasError(self):
+        """Get error status bool.
+
+        :return: bool, whether the widget has an error
+        """
         return self.error
 
     def getError(self):
+        """Get current error value
+
+        :return: any, current error value
+        """
         return self._error
 
     def refreshColors(self):
+        """Forces update of widget style.
+        Uses self.setStyle(self.style())
+
+        :return:
+        """
         self.setStyle(self.style())
 
     @classmethod
     def _isColorDict(cls, colors):
         """Assert 'colors' matches the format for a colors dict.
 
-        :param colors: thing to check format of
+        :param colors: dict to check format of
         :return: bool
             False if colors=None
             True if colors= correct format
@@ -63,18 +85,20 @@ class _LineEditHelper(QLineEdit):
         # check format
         assert isinstance(colors, dict), \
             'provide a color dict; check help(setAutoColors) for more info'
-        assert all(cls._isColorTuple(c) for c in colors.values()), \
-            'provide tuples of color strings; see help(setAutoColors) for formatting'
+        try:
+            all(cls._isColorTuple(c) for c in colors.values())
+        except AssertionError:
+            raise AssertionError('provide a color dict; check help(setAutoColors) for more info')
         return True
 
     @classmethod
     def _isColorTuple(cls, colors):
         """Assert 'colors' matches the format for a colors tuple.
 
-        :param colors: thing to check format of
+        :param colors: tuple to check format of
         :return: bool
-            False if colors=None
-            True if colors= correct format
+            False if colors == None
+            True if colors == correct format
             Raises AssertionError if incorrect format
         """
         if colors is None:
@@ -89,9 +113,18 @@ class _LineEditHelper(QLineEdit):
         return True
 
     def getStyleString(self):
+        """Get the widget's current style sheet string.
+
+        :return: string, current style sheet string
+        """
         return self._styleString
 
     def setStyleSheet(self, p_str):
+        """QWidget.setStyleSheet(), plus stores the style string in ._styleString
+
+        :param p_str: string, style string (from makeStyleString() for convenience)
+        :return:
+        """
         self._styleString = p_str
         super().setStyleSheet(p_str)
 
@@ -158,7 +191,7 @@ class _LineEditHelper(QLineEdit):
 
         # frame on focus
         string += "QLineEdit:focus { border: 2px solid black; }\n"
-        # self._styleString = string
+
         return string
 
 
