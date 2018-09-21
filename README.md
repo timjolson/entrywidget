@@ -7,9 +7,9 @@ Data entry PyQt5 QWidget subclasses, for error checking convenience and automati
     LabelLineEdit  # AutoColorLineEdit with a QLabel on left side
     EntryWidget  # LabelLineEdit with QComboBox on right side
     
-    *For LabelLineEdit, args for AutoColorLineEdit must be keywords
-    *For EntryWidget, args for LabelLineEdit or AutoColorLineEdit must be keywords
-    
+![alt text](examples/image.PNG)
+
+
 ## doc strings:
 
 #### AutoColorLineEdit
