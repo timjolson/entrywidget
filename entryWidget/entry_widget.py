@@ -375,7 +375,7 @@ class AutoColorLineEdit(QWidget):
             format: (backgroundColor, textColor)
             e.g. ('black', 'white')
                 ('#000000', '#FFFFFF')
-            if colors==None, uses already_stored_automatic_colors['default']
+            if colors==None, uses already stored automatic colors['default']
         :return:
         """
         logging.debug(self.name + f'setColors({str(colors)})')
@@ -675,7 +675,7 @@ class EntryWidget(LabelLineEdit):
         """
 
     defaultColors = copy(_LineEditHelper.defaultColors)
-    
+
     defaultArgs = \
         {'options':list(['opt1', 'opt2']), 'optionFixed':False,
          'onOptionChanged': (lambda x: logging.debug(x.name + 'default onOptionChanged()'))
