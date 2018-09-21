@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QPalette
-from generalUtils import distance
+from generalUtils import tupleDistance
 
 colorList = \
 [(['aliceblue'], '#F0F8FF', (240, 248, 255)),
@@ -179,13 +179,13 @@ def findColor(color):
     """Finds a color in colorList by name, rgb, or hex string.
     If a name string is passed, it must match exactly.
     If rgb (int, int, int) tuple is passed, if no exact match, returns closest color
-        by distance between values.
+        by tupleDistance between values.
     If hex string passed, if no exact match, converts to rgb and runs with that tuple.
 
     :param color: hex string, color name string, or rgb (int, int, int)
     :return: ( [possible color name strings], hex string, (r,g,b) )
     """
-    if isinstance(color, str) and color.startswith('#'):
+    if isinstance(color, str) and (color.startswith('#') or color.startswith('0x')):
         for c in colorList:
             if c[1] == color:
                 return c
@@ -196,14 +196,14 @@ def findColor(color):
                 if n.upper() == color.upper():
                     return c[0], c[1].upper(), c[2]
         return None
-    if isinstance(color, tuple) and all([isinstance(c, int) for c in color]):
+    if isinstance(color, tuple) and len(color) == 3 and all([isinstance(c, int) for c in color]):
         _min = 1.1e16
         _min_c = ''
         for c in colorList:
             if c[2] == color:
                 return c[0], c[1].upper(), c[2]
         for c in colorList:
-            d = distance(color, c[2])
+            d = tupleDistance(color, c[2])
             if d < _min:
                 _min = d
                 _min_c = c
