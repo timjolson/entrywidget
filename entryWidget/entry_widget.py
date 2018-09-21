@@ -9,7 +9,8 @@ import logging
 
 class _LineEditHelper(QLineEdit):
     """
-    QLineEdit subclass, with additional 'error' pyqtProperty with helpers.
+    QLineEdit subclass, with additional 'error' pyqtProperty with helpers, and defaultColors dict
+    for default automatic color scheme.
     """
     defaultColors = {
         'error-readonly': ('orangered', 'white'),
@@ -150,44 +151,31 @@ class _LineEditHelper(QLineEdit):
                 _colors.update({k:(v0, v1)})
 
             string = \
+                "QLineEdit[error=true] {background-color: " + \
+                f"{_colors['error-readonly'][0]}; color: {_colors['error-readonly'][1]}" + ";}\n" + \
                 "QLineEdit[error=true][enabled=true][readOnly=false] {background-color: " + \
-                str(_colors['error'][0]) + "; color: " + \
-                str(_colors['error'][1]) + \
-                ";}\nQLineEdit[error=true][enabled=false][readOnly=false] {background-color: " + \
-                str(_colors['error-readonly'][0]) + "; color: " + \
-                str(_colors['error-readonly'][1]) + \
-                ";}\nQLineEdit[error=true][enabled=false][readOnly=true] {background-color: " + \
-                str(_colors['error-readonly'][0]) + "; color: " + \
-                str(_colors['error-readonly'][1]) + \
-                ";}\nQLineEdit[error=true][enabled=true][readOnly=true] {background-color: " + \
-                str(_colors['error-readonly'][0]) + "; color: " + \
-                str(_colors['error-readonly'][1]) + \
-                ";}\nQLineEdit[error=false][enabled=true][readOnly=true] {background-color: " + \
-                str(_colors['readonly'][0]) + "; color: " + \
-                str(_colors['readonly'][1]) + \
-                ";}\nQLineEdit[error=false][enabled=false][readOnly=false] {background-color: " + \
-                str(_colors['disabled'][0]) + "; color: " + \
-                str(_colors['disabled'][1]) + \
-                ";}\nQLineEdit[error=false][enabled=false][readOnly=true] {background-color: " + \
-                str(_colors['disabled'][0]) + "; color: " + \
-                str(_colors['disabled'][1]) + \
-                ";}\nQLineEdit[error=false][enabled=true][readOnly=false] {background-color: " + \
-                str(_colors['default'][0]) + "; color: " + \
-                str(_colors['default'][1]) + \
-                ";}\nQLineEdit[error=false][enabled=true][readOnly=false][text=''] {background-color: " + \
-                str(_colors['blank'][0]) + "; color: " + \
-                str(_colors['blank'][1]) + ";}\n"
+                f"{_colors['error'][0]}; color: {_colors['error'][1]}" + ";}\n" + \
+                "QLineEdit[error=false][enabled=true][readOnly=true] {background-color: " + \
+                f"{_colors['readonly'][0]}; color: {_colors['readonly'][1]}" + ";}\n" + \
+                "QLineEdit[error=false][enabled=false][readOnly=false] {background-color: " + \
+                f"{_colors['disabled'][0]}; color: {_colors['disabled'][1]}" + ";}\n" + \
+                "QLineEdit[error=false][enabled=false][readOnly=true] {background-color: " + \
+                f"{_colors['disabled'][0]}; color: {_colors['disabled'][1]}" + ";}\n" + \
+                "QLineEdit[error=false][enabled=true][readOnly=false] {background-color: " + \
+                f"{_colors['default'][0]}; color: {_colors['default'][1]}" + ";}\n" + \
+                "QLineEdit[error=false][enabled=true][readOnly=false][text=''] {background-color: " + \
+                f"{_colors['blank'][0]}; color: {_colors['blank'][1]};" + "}\n"
         elif isinstance(colors, tuple) and self._isColorTuple(colors):
             v0, v1 = colors[0], colors[1]
             if isinstance(v0, tuple):
                 v0 = "rgb{}".format(str(v0)).replace(' ', '')
             if isinstance(v1, tuple):
                 v1 = "rgb{}".format(str(v1)).replace(' ', '')
-            colors = (v0, v1)
 
-            string = "QLineEdit {background-color: " + str(colors[0]) + "; color: " + str(colors[1]) + ";}\n"
+            string = "QLineEdit {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
         else:
-            raise TypeError
+            raise TypeError('makeStyleString takes a colors dict (see .setAutoColors for format). ' +
+                            f'You provided: {colors}')
 
         # frame on focus
         string += "QLineEdit:focus { border: 2px solid black; }\n"
@@ -687,7 +675,7 @@ class EntryWidget(LabelLineEdit):
         """
 
     defaultColors = copy(_LineEditHelper.defaultColors)
-
+    
     defaultArgs = \
         {'options':list(['opt1', 'opt2']), 'optionFixed':False,
          'onOptionChanged': (lambda x: logging.debug(x.name + 'default onOptionChanged()'))
