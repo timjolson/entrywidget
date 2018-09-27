@@ -1,7 +1,7 @@
 import pytest
 from generalUtils.helpers_for_tests import *
 from entryWidget import EntryWidget
-from entryWidget.utils import getCurrentColor
+from generalUtils import getCurrentColor
 import sys
 
 # Qt stuff

@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QLineEdit, QLabel, QComboBox, QWidget, QSizePolicy, QHBoxLayout
 from PyQt5.QtCore import pyqtProperty, Qt, QSize
-from generalUtils import isFunc
 from copy import copy
 from types import MethodType
 from generalUtils import applyDefaultArgs, loggableQtName
@@ -142,7 +141,7 @@ class _LineEditHelper(QLineEdit):
             _colors = copy(self.defaultColors)
             _colors.update(colors)
 
-            for k,v in _colors.items():
+            for k, v in _colors.items():
                 v0, v1 = v[0], v[1]
                 if isinstance(v[0], tuple):
                     v0 = "rgb{}".format(str(v[0])).replace(' ', '')

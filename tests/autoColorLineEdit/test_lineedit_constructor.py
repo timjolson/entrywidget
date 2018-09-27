@@ -1,6 +1,6 @@
 import pytest
 from generalUtils.helpers_for_tests import *
-from entryWidget.utils import findColor, getCurrentColor
+from generalUtils import findColor, getCurrentColor
 from entryWidget import AutoColorLineEdit
 import sys
 
