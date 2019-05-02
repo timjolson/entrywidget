@@ -1,8 +1,17 @@
 import pytest
-from generalUtils.helpers_for_tests import *
-from generalUtils import findColor, getCurrentColor
-from entryWidget import AutoColorLineEdit
 import sys
+
+# test helpers
+from generalUtils.helpers_for_tests import *
+from generalUtils.helpers_for_qt_tests import *
+from entryWidget.helpers import *
+
+# color helpers
+from generalUtils.color_utils import findColor, colorList
+from generalUtils.qt_utils import getCurrentColor
+
+# class to test
+from entryWidget import AutoColorLineEdit
 
 # Qt stuff
 from PyQt5 import QtCore

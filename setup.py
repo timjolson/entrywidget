@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 name = 'entryWidget'
 
 import logging
-logging.basicConfig(filename=f'.\install-{name}.log', level=logging.DEBUG)
+logging.basicConfig(filename=f'install-{name}.log', level=logging.DEBUG)
 logging.debug(find_packages())
 
 setup(
@@ -14,5 +14,5 @@ setup(
     dependency_links = [
         'https://github.com/timjolson/generalutils.git'
     ],
-    tests_require = ['pytest']
+    tests_require = ['pytest', 'pytest-qt']
 )

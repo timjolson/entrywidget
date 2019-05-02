@@ -2,7 +2,8 @@ from PyQt5.QtWidgets import QLineEdit, QLabel, QComboBox, QWidget, QSizePolicy, 
 from PyQt5.QtCore import pyqtProperty, Qt, QSize
 from copy import copy
 from types import MethodType
-from generalUtils import applyDefaultArgs, loggableQtName
+from generalUtils import apply_default_args
+from generalUtils.qt_utils import loggableQtName
 import logging
 
 
@@ -240,7 +241,7 @@ class AutoColorLineEdit(QWidget):
         :param onTextChanged: function to call when text entry changes
         :param onEditingFinished: function to call when text editing is finished
         """
-        _, a = applyDefaultArgs(kwargs, AutoColorLineEdit.defaultArgs)
+        _, a = apply_default_args(kwargs, AutoColorLineEdit.defaultArgs)
         self._inited = False  # flag to prevent a lot of extra work on setup
 
         super().__init__(parent)
