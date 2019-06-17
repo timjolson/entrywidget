@@ -2,9 +2,9 @@ import pytest
 import sys
 
 # test helpers
-from generalUtils.helpers_for_tests import *
-from generalUtils.helpers_for_qt_tests import *
-from entryWidget.helpers import *
+from qt_utils.helpers_for_tests import *
+from qt_utils.helpers_for_qt_tests import *
+from . import *
 
 # class to test
 from entryWidget import LabelLineEdit

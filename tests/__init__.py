@@ -1,7 +1,6 @@
 from entryWidget import EntryWidget
 from copy import copy
 
-
 test_strings = ['str0', 'str1', 'str2', ['not a string']]
 test_options_good = ['opt1', 'opt2', 'opt3']
 test_options_bad = ['opt1', ['not a string']]
