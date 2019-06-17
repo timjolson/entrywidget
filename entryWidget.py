@@ -327,7 +327,7 @@ class AutoColorLineEdit(QWidget):
         self._editBox.error = status
 
         if bool(status):
-            self.onError.__self__.onError()
+            self.onError()
 
     @property
     def manualColors(self):
@@ -358,7 +358,7 @@ class AutoColorLineEdit(QWidget):
 
         self._liveErrorChecking = mode
         if mode is True and self._inited is True:
-            self.setError(self.isError.__self__.isError())
+            self.setError(self.isError())
 
     def refreshColors(self):
         """Updates box's colors.
@@ -476,7 +476,7 @@ class AutoColorLineEdit(QWidget):
 
         # run method for text editing finished
         if self._inited:
-            self.onEditingFinished.__self__.onEditingFinished()
+            self.onEditingFinished()
 
     def textChanged(self, text):
         """Called when textChanged signal received.
@@ -490,12 +490,12 @@ class AutoColorLineEdit(QWidget):
 
         # error check and update colors
         if self._inited is True and (self._liveErrorChecking is True or self.text() == ''):
-            self.setError(self.isError.__self__.isError())
+            self.setError(self.isError())
 
         self.refreshColors()
 
         if self._inited:
-            self.onTextChanged.__self__.onTextChanged()
+            self.onTextChanged()
 
     def setOnTextChanged(self, func):
         """Set function to run when box's text changes.
@@ -521,11 +521,11 @@ class AutoColorLineEdit(QWidget):
 
         # error check
         if self._inited is True:
-            self.setError(self.isError.__self__.isError())
+            self.setError(self.isError())
 
         # run attached method
         if self._inited:
-            self.onEditingFinished.__self__.onEditingFinished()
+            self.onEditingFinished()
 
     def setOnEditingFinished(self, func):
         """Set function to run when box's text editing is finished.
@@ -555,7 +555,7 @@ class AutoColorLineEdit(QWidget):
 
         # error check
         if self._inited is True:
-            self.setError(self.isError.__self__.isError())
+            self.setError(self.isError())
 
     def setOnError(self, func):
         """Set function to run when box has an error.
@@ -572,7 +572,7 @@ class AutoColorLineEdit(QWidget):
 
         # error check
         if self._inited is True:
-            self.setError(self.isError.__self__.isError())
+            self.setError(self.isError())
 
 
 class LabelLineEdit(AutoColorLineEdit):
@@ -786,7 +786,7 @@ class EntryWidget(LabelLineEdit):
         self._selectedOption = self._optionList.currentText()
 
         if self._inited:
-            self.onOptionChanged.__self__.onOptionChanged()
+            self.onOptionChanged()
 
     def getSelected(self):
         """Get current QComboBox selection.
