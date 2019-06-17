@@ -1,18 +1,13 @@
 from setuptools import setup, find_packages
 
-name = 'entryWidget'
-
-import logging
-logging.basicConfig(filename=f'install-{name}.log', level=logging.DEBUG)
-logging.debug(find_packages())
 
 setup(
-    name=name,
-    version="0.5",
+    name='entryWidget',
+    version="0.6",
     packages = find_packages(),
     install_requires = ['PyQt5'],
     dependency_links = [
-        'https://github.com/timjolson/generalutils.git'
+        'https://github.com/timjolson/qt_utils.git',
     ],
     tests_require = ['pytest', 'pytest-qt']
 )

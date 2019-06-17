@@ -2,12 +2,12 @@ import pytest
 import sys
 
 # test helpers
-from generalUtils.helpers_for_tests import *
-from generalUtils.helpers_for_qt_tests import *
-from entryWidget.helpers import *
+from qt_utils.helpers_for_tests import *
+from qt_utils.helpers_for_qt_tests import *
+from . import *
 
 # color helpers
-from generalUtils.qt_utils import getCurrentColor
+from qt_utils import getCurrentColor
 
 # Qt stuff
 from PyQt5 import QtCore
@@ -21,48 +21,64 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 app = QApplication(sys.argv)
 
-def test_basic_open(qtbot):
+
+def test_setReadOnly(qtbot):
     widget = EntryWidget()
     show(locals())
-
-
-def test_constructor_readOnly(qtbot):
-    widget = EntryWidget(readOnly=True)
-    show(locals())
+    widget.setReadOnly(True)
     assert widget._editBox.isReadOnly() is True
     assert widget.isReadOnly() is True
     assert widget._optionList.isEnabled() is True
     assert widget._optionFixed is False
 
-    widget = EntryWidget(readOnly=False)
-    show(locals())
+    widget.setReadOnly(False)
     assert widget._editBox.isReadOnly() is False
     assert widget.isReadOnly() is False
     assert widget._optionList.isEnabled() is True
     assert widget._optionFixed is False
 
 
-def test_constructor_options(qtbot):
-    widget = EntryWidget(options=test_options_good)
+def test_setEnabled(qtbot):
+    widget = EntryWidget()
     show(locals())
-    assert widget.getOptions() == test_options_good
-    assert widget.getSelected() == test_options_good[0]
-
-
-def test_constructor_optionFixed(qtbot):
-    widget = EntryWidget(optionFixed=True)
-    show(locals())
+    widget.setEnabled(False)
+    assert widget._editBox.isEnabled() is False
+    assert widget.isReadOnly() is False
     assert widget._optionList.isEnabled() is False
     assert widget._optionFixed is True
 
-    widget = EntryWidget(optionFixed=False)
-    show(locals())
+    widget.setEnabled(True)
+    assert widget._editBox.isEnabled() is True
+    assert widget.isReadOnly() is False
     assert widget._optionList.isEnabled() is True
     assert widget._optionFixed is False
 
 
-def test_constructor_onLabelClick(qtbot):
-    widget = EntryWidget(onLabelClick=lock_unlock_option_mouse)
+def test_setOptions(qtbot):
+    widget = EntryWidget()
+    show(locals())
+    widget.setOptions(test_options_good)
+    assert widget.getOptions() == test_options_good
+    assert widget.getSelected() == test_options_good[0]
+
+
+def test_setFixedOption(qtbot):
+    widget = EntryWidget()
+    show(locals())
+    widget.setOptionFixed(True)
+    assert widget._optionList.isEnabled() is False
+    assert widget._optionFixed is True
+
+    widget = EntryWidget()
+    show(locals())
+    widget.setOptionFixed(False)
+    assert widget._optionList.isEnabled() is True
+    assert widget._optionFixed is False
+
+
+def test_setOnLabelClick(qtbot):
+    widget = EntryWidget()
+    widget.setOnLabelClick(lock_unlock_option_mouse)
     show(locals())
 
     qtbot.mouseClick(widget._label, QtCore.Qt.LeftButton)
@@ -73,9 +89,10 @@ def test_constructor_onLabelClick(qtbot):
     assert widget._optionFixed is False
 
 
-def test_constructor_onOptionChanged(qtbot):
-    widget = EntryWidget(options=test_options_colors, onOptionChanged=change_color_on_option)
+def test_setOnOptionChanged(qtbot):
+    widget = EntryWidget(options=test_options_colors)
     show(locals())
+    widget.setOnOptionChanged(change_color_on_option)
 
     widget.setSelected(test_options_colors[1])
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_options_colors[1]
@@ -86,12 +103,3 @@ def test_constructor_onOptionChanged(qtbot):
     widget.setSelected(test_options_colors[2])
     assert getCurrentColor(widget._editBox, 'Window')[0][0] ==  test_options_colors[2]
 
-
-def test_embed_widgets(qtbot):
-    from PyQt5.QtWidgets import QVBoxLayout, QWidget
-    window = QWidget()
-    layout = QVBoxLayout(window)
-    layout.addWidget(EntryWidget())
-    layout.addWidget(EntryWidget())
-    window.setLayout(layout)
-    show({'qtbot':qtbot, 'widget':window})

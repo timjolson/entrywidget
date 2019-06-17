@@ -3,6 +3,7 @@ from PyQt5.Qt import QApplication
 import sys
 import logging
 
+
 app = QApplication(sys.argv)
 
 
