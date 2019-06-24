@@ -54,7 +54,7 @@ widget0 = AutoColorLineEdit(
 widget0.setToolTip(
     """Typing anything causes:
     error checking (liveErrorChecking=True)
-    log the new text (onTextChanged=...)
+    log the new text (_onTextChanged=...)
     
     Typing 'error' causes:
     box to have error (isError=...)
@@ -62,7 +62,7 @@ widget0.setToolTip(
     
     Typing 'close', 'readonly', or 'disable' and pressing RETURN/ENTER:
     closes the window ; makes box readonly ; disables box entirely
-    (onEditingFinished=...)
+    (_onEditingFinished=...)
     """
 )
 
