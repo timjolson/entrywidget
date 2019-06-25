@@ -137,10 +137,8 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self.setLayout(layout)
         self.lineEdit = lineEdit
 
-        # self.hasError.connect(lambda e: self.lineEdit.setToolTip(f'Error:\n{e}'))
-        # self.errorCleared.connect(lambda: self.lineEdit.setToolTip(''))
         self.errorChanged.connect(lambda e: self.refreshColors())
-        self.setError(self.errorCheck())
+        self._error = self.errorCheck()
         self.refreshColors()
 
     def _onEditingFinished(self):
