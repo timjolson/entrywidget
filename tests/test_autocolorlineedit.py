@@ -199,21 +199,17 @@ def test_all_colors(qtbot):
     for C in colorList:
         if C == colorList[-1]:
             continue
-        logging.debug(C)
-        clist = C[0] + list((C[1], C[2]))
-        logging.debug(clist)
+        logging.debug(f"C: {C}")
+        clist = C.names + [C.hex, C.rgb]
+        logging.debug(f"clist: {clist}")
         for c in clist:
             logging.debug('c: ' + str(c))
-            logging.debug(findColor(c))
+            logging.debug(f"found: {findColor(c)}")
             widget.setColors((c, c))
-            logging.debug(getCurrentColor(widget, 'Window'))
+            logging.debug(f"currentColor: {getCurrentColor(widget, 'Window')}")
             if not getCurrentColor(widget, 'Window').names[0] in clist:
-                fails.append([C, c, getCurrentColor(widget, 'Window')])
-
-    logging.debug('*****************\nFailed colors:')
-    for f in fails:
-        logging.debug(f)
-    assert not fails
+                logging.debug('*****************Color Failed')
+                assert False
 
 
 def test_embed_widgets(qtbot):

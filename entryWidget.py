@@ -207,9 +207,9 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         if isinstance(colors, tuple) and _isColorTuple(colors):
             v0, v1 = colors[0], colors[1]
             if isinstance(v0, tuple):
-                v0 = "rgb{}".format(str(v0)).replace(' ', '')
+                v0 = "rgb{}".format(str(v0[:])).replace(' ', '')
             if isinstance(v1, tuple):
-                v1 = "rgb{}".format(str(v1)).replace(' ', '')
+                v1 = "rgb{}".format(str(v1[:])).replace(' ', '')
 
             string = "QLineEdit {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
             string += "QLineEdit:focus { border: 2px solid black; }\n"
