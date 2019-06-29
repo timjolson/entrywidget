@@ -1,8 +1,9 @@
-from PyQt5.QtWidgets import QLineEdit, QLabel, QComboBox, QWidget, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QLineEdit, QLabel, QWidget, QPushButton, QHBoxLayout
 from PyQt5.QtCore import pyqtProperty, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from copy import copy
 from qt_utils import loggableQtName, ErrorMixin
+from qt_utils.widgets import DictComboBox
 from generalUtils.delegated import delegated
 import logging
 
@@ -416,8 +417,8 @@ class LabelLineEdit(AutoColorLineEdit):
 
 
 class EntryWidget(LabelLineEdit):
-    """A QComboBox after a LabelLineEdit.
-    QComboBox (.comboBox):
+    """A DictComboBox after a LabelLineEdit.
+    DictComboBox (.comboBox):
         Set options with obj.setOptions(['opt1', 'opt2', 'op3'])
         Get options with obj.getOptions()
         Set selected with obj.setSelected('opt2')
@@ -425,7 +426,7 @@ class EntryWidget(LabelLineEdit):
         Set/unset ReadOnly with obj.setOptionFixed(bool)
 
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    kwargs listed here will be passed to constructors of QLineEdit/QLabel/QComboBox
+    kwargs listed here will be passed to constructors of QLineEdit/QLabel/DictComboBox
 
     Widget kwargs
     :param parent: Parent Qt Object (default None for individual widget)
@@ -441,7 +442,7 @@ class EntryWidget(LabelLineEdit):
     QLabel kwargs
     :param label: str, label text
 
-    QComboBox kwargs
+    DictComboBox kwargs
     :param options: [str, str, ...]
     :param optionFixed: bool, whether option is fixed or can be changed
 
@@ -452,60 +453,50 @@ class EntryWidget(LabelLineEdit):
     optionChanged = pyqtSignal(str)
     optionIndexChanged = pyqtSignal(int)
 
-    getSelected, setSelected, setOptionFixed = \
-        delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled')
+    getSelected, setSelected, setOptionFixed, currentData = \
+        delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled, currentData')
 
     def __init__(self, parent=None, **kwargs):
         options = kwargs.pop('options', type(self).defaultArgs['options'])
         self._setupOptionFixed = kwargs.pop('optionFixed', type(self).defaultArgs['optionFixed'])
-        self._selectedOption = ''
-        self._options = options
+        self._setupOptions = options
 
         LabelLineEdit.__init__(self, parent, **kwargs)
 
     def setupUi(self):
         LabelLineEdit.setupUi(self)  # QLineEdit, layout, QLabel
-        combo = QComboBox(self)
+        combo = DictComboBox(self)
         combo.currentTextChanged.connect(self.optionChanged.emit)
         combo.currentTextChanged.connect(self._onOptionChanged)
         combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
-        combo.setStyleSheet("QComboBox:focus, QComboBox:on { background-color: white; border: 2px solid black; }")
-        combo.addItems(self._options)
+        combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
+        combo.addItems(self._setupOptions)
         combo.setDisabled(self._setupOptionFixed)
-        combo.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
         self.layout().insertWidget(2, combo)
         self.comboBox = combo
 
-        del self._setupOptionFixed
+        del self._setupOptionFixed, self._setupOptions
 
     def _onOptionChanged(self, text):
         self.setError(self.errorCheck())
 
     def getOptions(self):
-        """Get list of QComboBox options.
+        """Get list of DictComboBox options.
 
         :return: [option_strings]
         """
-        return self._options.copy()
+        return self.comboBox.allItems()
     options = getOptions
 
     def setOptions(self, options):
-        """Set list of QComboBox options.
+        """Set list of DictComboBox options.
 
         :param options: iterable of strings
         :return:
         """
         self.logger.debug(self.name + f'setOptions({str(options)})')
-        self.comboBox.clear()
-
-        # ordered set
-        options = {o:None for o in options}
-        options = list(options.keys())
-
-        self.comboBox.addItems(options)
-        # self.comboBox.setCurrentIndex(0)
-        self._options = options
-        # i = self._optionList.findText(selected, Qt.MatchFixedString)
+        self.comboBox.setAllItems(options)
 
     def optionFixed(self):
         return not self.comboBox.isEnabled()
@@ -576,9 +567,9 @@ class ButtonLineEdit(LabelLineEdit):
         del self._setupLabelText
 
 
-class ButtonEntryWidget(ButtonLineEdit):
-    """A QComboBox after a ButtonLineEdit.
-    QComboBox (.comboBox):
+class ButtonEntryWidget(EntryWidget):
+    """A DictComboBox after a ButtonLineEdit.
+    DictComboBox (.comboBox):
         Set options with obj.setOptions(['opt1', 'opt2', 'op3'])
         Get options with obj.getOptions()
         Set selected with obj.setSelected('opt2')
@@ -586,7 +577,7 @@ class ButtonEntryWidget(ButtonLineEdit):
         Set/unset ReadOnly with obj.setOptionFixed(bool)
 
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    kwargs listed here will be passed to constructors of QLineEdit/QLabel/QComboBox
+    kwargs listed here will be passed to constructors of QLineEdit/QLabel/DictComboBox
 
     Widget kwargs
     :param parent: Parent Qt Object (default None for individual widget)
@@ -602,26 +593,28 @@ class ButtonEntryWidget(ButtonLineEdit):
     QPushButton kwargs
     :param label: str, label text
 
-    QComboBox kwargs
+    DictComboBox kwargs
     :param options: [str, str, ...]
     :param optionFixed: bool, whether option is fixed or can be changed
 
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
+    clicked = pyqtSignal()
+
     def setupUi(self):
         ButtonLineEdit.setupUi(self)  # QLineEdit, layout, QPushButton
-        combo = QComboBox(self)
+        combo = DictComboBox(self)
         combo.currentTextChanged.connect(self.optionChanged.emit)
         combo.currentTextChanged.connect(self._onOptionChanged)
         combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
-        combo.setStyleSheet("QComboBox:focus, QComboBox:on { background-color: white; border: 2px solid black; }")
-        combo.addItems(self._options)
+        combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
+        combo.addItems(self._setupOptions)
         combo.setDisabled(self._setupOptionFixed)
-        combo.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
         self.layout().insertWidget(2, combo)
         self.comboBox = combo
 
-        del self._setupOptionFixed
+        del self._setupOptionFixed, self._setupOptions
 
 
 __all__ = ['AutoColorLineEdit', 'LabelLineEdit', 'EntryWidget', 'ButtonLineEdit', 'ButtonEntryWidget']

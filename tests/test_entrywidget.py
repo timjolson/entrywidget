@@ -47,7 +47,7 @@ def test_constructor_readOnly(qtbot):
 def test_constructor_options(qtbot):
     widget = EntryWidget(options=test_options_good)
     show(locals())
-    assert widget.getOptions() == test_options_good
+    assert widget.getOptions() == {k:k for k in test_options_good}
     assert widget.getSelected() == test_options_good[0]
 
 
@@ -111,7 +111,7 @@ def test_setOptions(qtbot):
     widget = EntryWidget()
     show(locals())
     widget.setOptions(test_options_good)
-    assert widget.getOptions() == test_options_good
+    assert widget.getOptions() == {k:k for k in test_options_good}
     assert widget.getSelected() == test_options_good[0]
 
 
