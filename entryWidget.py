@@ -99,8 +99,8 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     def __init__(self, parent=None, **kwargs):
         autoColors = kwargs.pop('autoColors', type(self).defaultArgs['autoColors'])
         liveErrorChecking = kwargs.pop('liveErrorChecking', type(self).defaultArgs['liveErrorChecking'])
-        text = kwargs.pop('text', type(self).defaultArgs['text'])
-        readOnly = kwargs.pop('readOnly', False)
+        self._setupText = kwargs.pop('text', type(self).defaultArgs['text'])
+        self._setupReadOnly = kwargs.pop('readOnly', False)
 
         QWidget.__init__(self, parent, **kwargs)
         ErrorMixin.__init__(self)
@@ -123,13 +123,17 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             raise TypeError(f"Unrecognized format {autoColors}")
         self._autoColors = autoColors
 
-        self.setupUi(text, readOnly)
+        self.setupUi()
 
-    def setupUi(self, text, readOnly):
-        lineEdit = QLineEdit(parent=self, text=text, readOnly=readOnly)
+        self.errorChanged.connect(lambda e: self.refreshColors())
+        self._error = self.errorCheck()
+        self.refreshColors()
+
+    def setupUi(self):
+        lineEdit = QLineEdit(parent=self, text=self._setupText, readOnly=self._setupReadOnly)
         lineEdit.editingFinished.connect(self._onEditingFinished)
         lineEdit.textChanged.connect(self._onTextChanged)
-        lineEdit.setClearButtonEnabled(not readOnly)
+        lineEdit.setClearButtonEnabled(not self._setupReadOnly)
 
         layout = QHBoxLayout(self)
         layout.addWidget(lineEdit)
@@ -137,9 +141,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self.setLayout(layout)
         self.lineEdit = lineEdit
 
-        self.errorChanged.connect(lambda e: self.refreshColors())
-        self._error = self.errorCheck()
-        self.refreshColors()
+        del self._setupText, self._setupReadOnly
 
     def _onEditingFinished(self):
         if self._modified is False:
@@ -383,13 +385,17 @@ class LabelLineEdit(AutoColorLineEdit):
     defaultArgs.update(label='Label')
 
     def __init__(self, parent=None, **kwargs):
-        labelText = kwargs.pop('label', type(self).defaultArgs['label'])
+        self._setupLabelText = kwargs.pop('label', type(self).defaultArgs['label'])
         AutoColorLineEdit.__init__(self, parent, **kwargs)
 
-        label = QLabel(parent=self, text=labelText)
+    def setupUi(self):
+        AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
+        label = QLabel(parent=self, text=self._setupLabelText)
         self.layout().insertWidget(0, label)
         self.label = label
         # self.label.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+
+        del self._setupLabelText
 
     def setLabel(self, text):
         """Set QLabel text
@@ -451,22 +457,26 @@ class EntryWidget(LabelLineEdit):
 
     def __init__(self, parent=None, **kwargs):
         options = kwargs.pop('options', type(self).defaultArgs['options'])
-        optionFixed = kwargs.pop('optionFixed', type(self).defaultArgs['optionFixed'])
+        self._setupOptionFixed = kwargs.pop('optionFixed', type(self).defaultArgs['optionFixed'])
         self._selectedOption = ''
         self._options = options
 
         LabelLineEdit.__init__(self, parent, **kwargs)
 
+    def setupUi(self):
+        LabelLineEdit.setupUi(self)  # QLineEdit, layout, QLabel
         combo = QComboBox(self)
         combo.currentTextChanged.connect(self.optionChanged.emit)
         combo.currentTextChanged.connect(self._onOptionChanged)
         combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
         combo.setStyleSheet("QComboBox:focus, QComboBox:on { background-color: white; border: 2px solid black; }")
-        combo.addItems(options)
-        combo.setDisabled(optionFixed)
+        combo.addItems(self._options)
+        combo.setDisabled(self._setupOptionFixed)
         combo.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.layout().insertWidget(2, combo)
         self.comboBox = combo
+
+        del self._setupOptionFixed
 
     def _onOptionChanged(self, text):
         self.setError(self.errorCheck())
@@ -528,20 +538,18 @@ class ButtonLineEdit(LabelLineEdit):
     """
     clicked = pyqtSignal()
 
-    def __init__(self, parent, **kwargs):
-        text = kwargs.pop('label', '')
-        print('kwargs', kwargs)
-        super().__init__(parent, **kwargs)
-
-        button = QPushButton(parent=self, text=text)
-        button.clicked.connect(self.clicked.emit)
-        self.layout().removeWidget(self.label)
-        self.label.deleteLater()
-        self.label = button
+    def setupUi(self):
+        AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
+        label = QPushButton(parent=self, text=self._setupLabelText)
+        label.clicked.connect(self.clicked.emit)
         self.layout().insertWidget(0, self.label)
+        self.label = label
+
+        # self.label.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        del self._setupLabelText
 
 
-class ButtonEntryWidget(EntryWidget):
+class ButtonEntryWidget(ButtonLineEdit):
     """A QComboBox after a ButtonLineEdit.
     QComboBox (.comboBox):
         Set options with obj.setOptions(['opt1', 'opt2', 'op3'])
@@ -573,19 +581,20 @@ class ButtonEntryWidget(EntryWidget):
 
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
-    clicked = pyqtSignal()
+    def setupUi(self):
+        ButtonLineEdit.setupUi(self)  # QLineEdit, layout, QPushButton
+        combo = QComboBox(self)
+        combo.currentTextChanged.connect(self.optionChanged.emit)
+        combo.currentTextChanged.connect(self._onOptionChanged)
+        combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
+        combo.setStyleSheet("QComboBox:focus, QComboBox:on { background-color: white; border: 2px solid black; }")
+        combo.addItems(self._options)
+        combo.setDisabled(self._setupOptionFixed)
+        combo.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.layout().insertWidget(2, combo)
+        self.comboBox = combo
 
-    def __init__(self, parent, **kwargs):
-        text = kwargs.pop('label', '')
-        print('kwargs', kwargs)
-        super().__init__(parent, **kwargs)
-
-        button = QPushButton(parent=self, text=text)
-        button.clicked.connect(self.clicked.emit)
-        self.layout().removeWidget(self.label)
-        self.label.deleteLater()
-        self.label = button
-        self.layout().insertWidget(0, self.label)
+        del self._setupOptionFixed
 
 
 __all__ = ['AutoColorLineEdit', 'LabelLineEdit', 'EntryWidget', 'ButtonLineEdit', 'ButtonEntryWidget']
