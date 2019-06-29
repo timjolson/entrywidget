@@ -79,8 +79,8 @@ def test_setReadOnly(qtbot):
     widget.setReadOnly(True)
     assert widget.lineEdit.isReadOnly() is True
     assert widget.isReadOnly() is True
-    assert widget.comboBox.isEnabled() is True
-    assert widget.optionFixed() is False
+    assert widget.comboBox.isEnabled() is False
+    assert widget.optionFixed() is True
 
     widget.setReadOnly(False)
     assert widget.lineEdit.isReadOnly() is False
@@ -94,15 +94,17 @@ def test_setEnabled(qtbot):
     show(locals())
     widget.setEnabled(False)
     assert widget.lineEdit.isEnabled() is False
-    assert widget.isReadOnly() is False
+    assert widget.isReadOnly() is True
     assert widget.comboBox.isEnabled() is False
     assert widget.optionFixed() is True
+    assert widget.label.isEnabled() is False
 
     widget.setEnabled(True)
     assert widget.lineEdit.isEnabled() is True
     assert widget.isReadOnly() is False
     assert widget.comboBox.isEnabled() is True
     assert widget.optionFixed() is False
+    assert widget.label.isEnabled() is True
 
 
 def test_setOptions(qtbot):

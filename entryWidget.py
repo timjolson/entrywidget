@@ -310,7 +310,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self._modified = True
         self.editingFinished.emit()
 
-    def setReadOnly(self, readOnly):
+    def setReadOnly(self, status):
         """Set the box editable or fixed.
 
         :param status: box's editable status
@@ -318,10 +318,10 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             False: editable
         :return:
         """
-        self.logger.debug(f'setReadOnly({str(readOnly)})')
+        self.logger.debug(f'setReadOnly({str(status)})')
 
-        self.lineEdit.setReadOnly(readOnly)
-        self.lineEdit.setClearButtonEnabled(not readOnly)
+        self.lineEdit.setReadOnly(status)
+        self.lineEdit.setClearButtonEnabled(not status)
         self.refreshColors()
 
     def setDisabled(self, status):
@@ -509,6 +509,33 @@ class EntryWidget(LabelLineEdit):
 
     def optionFixed(self):
         return not self.comboBox.isEnabled()
+
+    def setEnabled(self, status):
+        """Set the box disabled or enabled.
+
+        :param status: box's enabled status
+            True: selectable (editability dictated by readOnly)
+            False: unselectable, uneditable
+        :return:
+        """
+        self.logger.debug(f'setEnabled({str(status)})')
+        self.comboBox.setEnabled(status)
+        LabelLineEdit.setEnabled(self, status)  # QLineEdit, refreshColors()
+        self.label.setEnabled(status)
+
+        self.setReadOnly(not status)
+
+    def setReadOnly(self, status):
+        """Set the box editable or fixed.
+
+        :param status: box's editable status
+            True: uneditable
+            False: editable
+        :return:
+        """
+        self.logger.debug(f'setReadOnly({str(status)})')
+        self.setOptionFixed(status)
+        LabelLineEdit.setReadOnly(self, status)  # QLineEdit, refreshColors()
 
 
 class ButtonLineEdit(LabelLineEdit):
