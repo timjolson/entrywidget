@@ -24,6 +24,7 @@ import logging
 
 # logging.basicConfig(stream=sys.stdout, filename='/logs/AutoColorLineEdit.log', level=logging.INFO)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+testlogger = logging.getLogger('testLogger')
 app = QApplication(sys.argv)
 
 
@@ -143,11 +144,11 @@ def test_errorCheck_live(qtbot):
     widget = AutoColorLineEdit()
     widget.errorCheck = lambda: check_error_typed(widget)
     show(locals())
-    widget.logger.debug('typing...')
+    testlogger.debug('typing...')
     qtbot.keyClicks(widget, 'erro')
     assert widget.getError() is False
     qtbot.keyClicks(widget, 'r')
-    widget.logger.debug('finished typing...')
+    testlogger.debug('finished typing...')
     assert widget.getError() == 'ERROR'
     assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
     qtbot.keyPress(widget, QtCore.Qt.Key_Backspace)
@@ -159,11 +160,11 @@ def test_errorCheck(qtbot):
     widget = AutoColorLineEdit(liveErrorChecking=False)
     widget.errorCheck = lambda: check_error_typed(widget)
     show(locals())
-    widget.logger.debug('typing...')
+    testlogger.debug('typing...')
     qtbot.keyClicks(widget, 'erro')
     assert widget.getError() is False
     qtbot.keyClicks(widget, 'r')
-    widget.logger.debug('finished typing...')
+    testlogger.debug('finished typing...')
     assert widget.getError() is False
     qtbot.keyPress(widget, QtCore.Qt.Key_Return)
     assert widget.getError() == 'ERROR'
@@ -199,16 +200,16 @@ def test_all_colors(qtbot):
     for C in colorList:
         if C == colorList[-1]:
             continue
-        logging.debug(f"C: {C}")
+        testlogger.debug(f"C: {C}")
         clist = C.names + [C.hex, C.rgb]
-        logging.debug(f"clist: {clist}")
+        testlogger.debug(f"clist: {clist}")
         for c in clist:
-            logging.debug('c: ' + str(c))
-            logging.debug(f"found: {findColor(c)}")
+            testlogger.debug('c: ' + str(c))
+            testlogger.debug(f"found: {findColor(c)}")
             widget.setColors((c, c))
-            logging.debug(f"currentColor: {getCurrentColor(widget, 'Window')}")
+            testlogger.debug(f"currentColor: {getCurrentColor(widget, 'Window')}")
             if not getCurrentColor(widget, 'Window').names[0] in clist:
-                logging.debug('*****************Color Failed')
+                testlogger.debug('*****************Color Failed')
                 assert False
 
 

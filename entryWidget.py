@@ -93,7 +93,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     }
     text, palette = delegated.methods('lineEdit', 'text, palette')
     clear, setClearButtonEnabled, isReadOnly = delegated.methods('lineEdit', 'clear setClearButtonEnabled isReadOnly')
-    mousePressEvent, mouseReleaseEvent = delegated.methods('lineEdit', 'mousePressEvent, mouseReleaseEvent')
+    # mousePressEvent, mouseReleaseEvent = delegated.methods('lineEdit', 'mousePressEvent, mouseReleaseEvent')
     keyPressEvent, keyReleaseEvent = delegated.methods('lineEdit', 'keyPressEvent, keyReleaseEvent')
     focusInEvent, focusOutEvent = delegated.methods('lineEdit', 'focusInEvent, focusOutEvent')
 
@@ -147,7 +147,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     def _onEditingFinished(self):
         if self._modified is False:
             return
-        self.logger.debug('_onEditingFinished')
+        self.logger.log(logging.DEBUG-1, '_onEditingFinished')
 
         err = self.errorCheck()
         self._modified = False
@@ -159,7 +159,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self.editingFinished.emit()
 
     def _onTextChanged(self, text):
-        self.logger.debug(f"_onTextChanged('{text}')")
+        self.logger.log(logging.DEBUG-1, f"_onTextChanged('{text}')")
         self._modified = True
 
         if self._liveErrorChecking is True:
@@ -199,7 +199,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             OR colors tuple->use provided colors
         :return: str, use in setStyleSheet()
         """
-        self.logger.debug(f"makeStyleString({colors})")
+        self.logger.log(logging.DEBUG-1, f"makeStyleString({colors})")
         if colors is None:
             colors = self._autoColors[self.getStatus()]
         elif isinstance(colors, str):
@@ -230,17 +230,15 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         :param mode: bool
         :return:
         """
-        self.logger.debug(f'setLiveErrorChecking({mode})')
-        if mode != self._liveErrorChecking:
-            self._liveErrorChecking = mode
+        self.logger.log(logging.DEBUG-1, f'setLiveErrorChecking({mode})')
+        self._liveErrorChecking = mode
 
         if mode is True:
-            self.logger.debug('errorCheck')
             self.setError(self.errorCheck())
 
     def refreshColors(self):
         """Update widget colors if set to automatic."""
-        self.logger.debug('refreshColors:' +
+        self.logger.log(logging.DEBUG-1, 'refreshColors:' +
                       f' error:\'{str(self.getError())}\' disabled:{str(not self.isEnabled())}' +
                       f' readonly:{str(self.isReadOnly())} text:\'{self.text()}\''
                       )
@@ -263,10 +261,10 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self._manualColors = True
 
         if colors is None:
-            self.logger.debug('setColors(default)')
+            self.logger.log(logging.DEBUG-1, 'setColors(default)')
             self.setColors(self._autoColors['default'])
         else:
-            self.logger.debug('setColors(makeStyleString)')
+            self.logger.log(logging.DEBUG-1, 'setColors(makeStyleString)')
             super().setStyleSheet(self.makeStyleString(colors))
 
     def autoColors(self):
@@ -407,13 +405,7 @@ class LabelLineEdit(AutoColorLineEdit):
         self.logger.debug(f'setLabel(\'{str(text)}\')')
         self.label.setText(text)
 
-    def getLabel(self):
-        """Get QLabel text
-
-        :return: str, QLabel text
-        """
-        self.logger.debug(f'getLabel(): \'{self.label.text()}\'')
-        return self.label.text()
+    getLabel = delegated.method('label', 'text')
 
 
 class EntryWidget(LabelLineEdit):
@@ -495,7 +487,7 @@ class EntryWidget(LabelLineEdit):
         :param options: iterable of strings
         :return:
         """
-        self.logger.debug(self.name + f'setOptions({str(options)})')
+        self.logger.debug(f'setOptions({str(options)})')
         self.comboBox.setAllItems(options)
 
     def optionFixed(self):

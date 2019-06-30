@@ -135,11 +135,11 @@ def test_setOnOptionChanged(qtbot):
     widget.optionChanged.connect(lambda t: change_color_on_option(widget))
 
     widget.setSelected(test_options_colors[1])
-    assert getCurrentColor(widget.lineEdit, 'Window')[0][0] ==  test_options_colors[1]
+    assert getCurrentColor(widget.lineEdit, 'Window')[0][0] == test_options_colors[1]
 
     widget.setSelected(test_options_colors[0])
-    assert getCurrentColor(widget.lineEdit, 'Window')[0][0] ==  test_options_colors[0]
+    assert getCurrentColor(widget.lineEdit, 'Window')[0][0] == test_options_colors[0]
 
     widget.setSelected(test_options_colors[2])
-    assert getCurrentColor(widget.lineEdit, 'Window')[0][0] ==  test_options_colors[2]
+    assert getCurrentColor(widget.lineEdit, 'Window')[0][0] == test_options_colors[2]
 
