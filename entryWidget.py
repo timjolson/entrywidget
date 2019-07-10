@@ -552,7 +552,7 @@ class ButtonLineEdit(LabelLineEdit):
         AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
         label = QPushButton(parent=self, text=self._setupLabelText)
         label.clicked.connect(self.clicked.emit)
-        self.layout().insertWidget(0, self.label)
+        self.layout().insertWidget(0, label)
         self.label = label
 
         # self.label.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
