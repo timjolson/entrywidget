@@ -55,13 +55,20 @@ def _isColorDict(colors):
 
 
 class AutoColorLineEdit(QWidget, ErrorMixin):
-    """A QLineEdit (in a QHBoxLayout) with error checking options linked to automatic color updates.
+    """A QLineEdit (in a QHBoxLayout) with error checking options with automatic color updates.
     QLineEdit (.lineEdit):
         Change with obj.setText('new text')
         Read with obj.text()
 
-    All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
+    signals:
+        hasError(error status)  # emitted when bool(error status) is True
+        errorChanged(error status)  # emitted when error status changes
+        errorCleared  # emitted when bool(error status) is changed to False
+        editingFinished  # emitted when Enter/Return pressed or focus is changed out of QLineEdit
+        textChanged(text)  # emitted when text changes at all
+        textEdited(text)  # emitted when text is changed by user
 
+    All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
     :param parent: Parent Qt Object (default None for individual widget)
     :param objectName: str, name of object for logging and within Qt
     :param text: str, starting text
@@ -417,6 +424,10 @@ class EntryWidget(LabelLineEdit):
         Get selected with obj.getSelected()
         Set/unset ReadOnly with obj.setOptionFixed(bool)
 
+    signals:
+        optionChanged(text)  # emits newly selected option when selection is changed
+        optionIndexChanged(int)  # emits new selection index when changed
+
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
     kwargs listed here will be passed to constructors of QLineEdit/QLabel/DictComboBox
 
@@ -527,6 +538,9 @@ class ButtonLineEdit(LabelLineEdit):
         Change with obj.setLabel('new text')
         Read with obj.getLabel()
 
+    signals:
+        clicked  # emitted when button is pushed
+
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
     kwargs listed here will be passed to constructors of QLineEdit/QLabel
 
@@ -567,6 +581,9 @@ class ButtonEntryWidget(EntryWidget):
         Set selected with obj.setSelected('opt2')
         Get selected with obj.getSelected()
         Set/unset ReadOnly with obj.setOptionFixed(bool)
+
+    signals:
+        clicked  # emitted when button is pushed
 
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
     kwargs listed here will be passed to constructors of QLineEdit/QLabel/DictComboBox
@@ -610,3 +627,7 @@ class ButtonEntryWidget(EntryWidget):
 
 
 __all__ = ['AutoColorLineEdit', 'LabelLineEdit', 'EntryWidget', 'ButtonLineEdit', 'ButtonEntryWidget']
+
+if __name__ == '__main__':
+    from qt_utils.designer import install_plugin_files
+    install_plugin_files('entrywidget_designer_plugin.py')
