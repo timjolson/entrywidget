@@ -25,6 +25,11 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
         Change with obj.setText('new text')
         Read with obj.text()
 
+    methods:
+        getError()  # get widget's error status
+        setError(any)  # set widget's error status (updates colors, emits relevant signals)
+        clearError()  # set widget's error status to None (updates colors, emits relevant signals)
+
     signals:
         hasError(error status)  # emitted when bool(error status) is True
         errorChanged(error status)  # emitted when error status changes
