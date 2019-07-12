@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QLineEdit, QLabel, QWidget, QPushButton, QHBoxLayout
-from PyQt5.QtCore import pyqtProperty, Qt, pyqtSignal
+from PyQt5.QtCore import pyqtProperty, pyqtSignal
+from PyQt5 import Qt
 from PyQt5.QtGui import QColor
 from copy import copy
 from qt_utils import loggableQtName, ErrorMixin
@@ -103,6 +104,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     # mousePressEvent, mouseReleaseEvent = delegated.methods('lineEdit', 'mousePressEvent, mouseReleaseEvent')
     keyPressEvent, keyReleaseEvent = delegated.methods('lineEdit', 'keyPressEvent, keyReleaseEvent')
     focusInEvent, focusOutEvent = delegated.methods('lineEdit', 'focusInEvent, focusOutEvent')
+    edit_text = Qt.pyqtProperty(str, lambda s: s.text(), lambda s, p: s.setText(p))
 
     def __init__(self, parent=None, **kwargs):
         autoColors = kwargs.pop('autoColors', type(self).defaultArgs['autoColors'])
@@ -351,13 +353,13 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self.logger.debug(f'setEnabled({str(status)})')
 
         if status is False:
-            self.setFocusPolicy(Qt.NoFocus)
+            self.setFocusPolicy(QtCore.Qt.NoFocus)
             QWidget.setEnabled(self, status)
             self.lineEdit.setEnabled(status)
         else:
             QWidget.setEnabled(self, status)
             self.lineEdit.setEnabled(status)
-            self.setFocusPolicy(Qt.StrongFocus)
+            self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
         self.refreshColors()
 
@@ -390,6 +392,8 @@ class LabelLineEdit(AutoColorLineEdit):
     defaultArgs = AutoColorLineEdit.defaultArgs.copy()
     defaultArgs.update(label='Label')
 
+    label_text = Qt.pyqtProperty(str, lambda s: s.getLabel(), lambda s, p: s.setLabel(p))
+
     def __init__(self, parent=None, **kwargs):
         self._setupLabelText = kwargs.pop('label', type(self).defaultArgs['label'])
         AutoColorLineEdit.__init__(self, parent, **kwargs)
@@ -399,7 +403,7 @@ class LabelLineEdit(AutoColorLineEdit):
         label = QLabel(parent=self, text=self._setupLabelText)
         self.layout().insertWidget(0, label)
         self.label = label
-        # self.label.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        # self.label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
 
         del self._setupLabelText
 
@@ -458,6 +462,8 @@ class EntryWidget(LabelLineEdit):
 
     getSelected, setSelected, setOptionFixed, currentData = \
         delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled, currentData')
+
+    selected_option = Qt.pyqtProperty(str, lambda s: s.getSelected(), lambda s, p: s.setSelected(p))
 
     def __init__(self, parent=None, **kwargs):
         options = kwargs.pop('options', type(self).defaultArgs['options'])
@@ -569,7 +575,7 @@ class ButtonLineEdit(LabelLineEdit):
         self.layout().insertWidget(0, label)
         self.label = label
 
-        # self.label.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
+        # self.label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         del self._setupLabelText
 
 
