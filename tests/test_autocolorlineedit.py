@@ -13,7 +13,7 @@ from qt_utils.colors import findColor, colorList
 from qt_utils import getCurrentColor
 
 # class to test
-from entryWidget import AutoColorLineEdit
+from entrywidget import AutoColorLineEdit
 
 # Qt stuff
 from PyQt5 import QtCore

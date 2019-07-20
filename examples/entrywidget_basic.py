@@ -2,7 +2,7 @@
 import pytest
 # e.g. qtbot.dostuff()
 
-from entryWidget import EntryWidget
+from entrywidget import EntryWidget
 import sys
 
 # Qt stuff

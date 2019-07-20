@@ -10,7 +10,7 @@ from . import *
 from qt_utils import getCurrentColor
 
 # class to test
-from entryWidget import EntryWidget
+from entrywidget import EntryWidget
 
 # Qt stuff
 from PyQt5.QtWidgets import QApplication

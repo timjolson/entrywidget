@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QLineEdit, QLabel, QWidget, QPushButton, QHBoxLayout
 from PyQt5.QtCore import pyqtProperty, pyqtSignal
-from PyQt5 import Qt
+from PyQt5 import Qt, QtCore
 from PyQt5.QtGui import QColor
 from copy import copy
 from qt_utils import loggableQtName, ErrorMixin

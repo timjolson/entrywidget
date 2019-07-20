@@ -8,7 +8,7 @@ from qt_utils.helpers_for_tests import (show, change_label_on_typing)
 from . import *
 
 # class to test
-from entryWidget import LabelLineEdit
+from entrywidget import LabelLineEdit
 
 # Qt stuff
 from PyQt5 import QtCore

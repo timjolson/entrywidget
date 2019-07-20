@@ -1,4 +1,4 @@
-from entryWidget import AutoColorLineEdit
+from entrywidget import AutoColorLineEdit
 from PyQt5.Qt import QApplication
 import sys
 import logging

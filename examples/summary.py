@@ -4,7 +4,7 @@ import logging
 import sys
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-from entryWidget import AutoColorLineEdit, LabelLineEdit, EntryWidget, ButtonLineEdit, ButtonEntryWidget
+from entrywidget import AutoColorLineEdit, LabelLineEdit, EntryWidget, ButtonLineEdit, ButtonEntryWidget
 
 
 ##################

@@ -1,6 +1,6 @@
 from qt_utils.designer import WidgetPluginFactory
 
-from entryWidget import \
+from entrywidget import \
     AutoColorLineEdit, EntryWidget, LabelLineEdit, ButtonLineEdit, ButtonEntryWidget
 
 AutoColorLineEditPlugin = WidgetPluginFactory(AutoColorLineEdit, toolTip='QLineEdit with automatic colors')

@@ -1,4 +1,4 @@
-from entryWidget import AutoColorLineEdit
+from entrywidget import AutoColorLineEdit
 from copy import copy
 
 test_strings = ['str0', 'str1', 'str2', ['not a string']]
