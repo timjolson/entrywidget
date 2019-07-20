@@ -222,7 +222,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
                 v1 = "rgb{}".format(str(v1[:])).replace(' ', '')
 
             string = "QLineEdit {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
-            string += "QLineEdit:focus { border: 2px solid black; }\n"
+            # string += "QLineEdit:focus { border: 2px solid black; }\n"
             return string
 
         else:
@@ -478,7 +478,7 @@ class EntryWidget(LabelLineEdit):
         combo.currentTextChanged.connect(self.optionChanged.emit)
         combo.currentTextChanged.connect(self._onOptionChanged)
         combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
-        combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
+        # combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
         combo.addItems(self._setupOptions)
         combo.setDisabled(self._setupOptionFixed)
         combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
@@ -569,11 +569,12 @@ class ButtonLineEdit(LabelLineEdit):
     clicked = pyqtSignal()
 
     def setupUi(self):
-        AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
         label = QPushButton(parent=self, text=self._setupLabelText)
         label.clicked.connect(self.clicked.emit)
-        self.layout().insertWidget(0, label)
         self.label = label
+
+        AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
+        self.layout().insertWidget(0, label)
 
         # self.label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
         del self._setupLabelText
@@ -622,7 +623,7 @@ class ButtonEntryWidget(EntryWidget):
         combo.currentTextChanged.connect(self.optionChanged.emit)
         combo.currentTextChanged.connect(self._onOptionChanged)
         combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
-        combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
+        # combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
         combo.addItems(self._setupOptions)
         combo.setDisabled(self._setupOptionFixed)
         combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)

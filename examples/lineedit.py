@@ -4,10 +4,13 @@ from PyQt5 import QtWidgets
 import sys
 import logging
 
+# log to console
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
+# start Qt
 app = QApplication(sys.argv)
 
-
+# <editor-fold desc="Support Funcs">
 def detect_error(w):
     return w.text() == 'error'
 
@@ -36,22 +39,26 @@ def do_whats_typed(w):
     if w.text() == 'close':
         print(w.name + ': Closing Window')
         w.window().close()
+# </editor-fold>
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 widgetDefault = AutoColorLineEdit()
 widgetDefault.setText("Basic Widget")
+widgetDefault.setWindowTitle("Basic Widget")
 widgetDefault.show()
 app.exec_()
 
 widgetDefault = AutoColorLineEdit()
 widgetDefault.errorCheck = lambda: detect_error(widgetDefault)
 widgetDefault.setText("Type 'error'")
+widgetDefault.setWindowTitle("errorCheck")
 widgetDefault.show()
 app.exec_()
 
 widgetDefault = AutoColorLineEdit(liveErrorChecking=False)
 widgetDefault.errorCheck = lambda: detect_error(widgetDefault)
 widgetDefault.setText("Type 'error', press ENTER")
+widgetDefault.setWindowTitle("liveErrorChecking=False")
+widgetDefault.setMinimumWidth(250)
 widgetDefault.show()
 app.exec_()
 
@@ -67,7 +74,7 @@ widget0.hasError.connect(lambda e: announce_error(widget0))
 widget0.textChanged.connect(lambda t: print_entered_text(widget0))
 widget0.editingFinished.connect(lambda: do_whats_typed(widget0))
 widget0.setToolTip(
-    """
+"""
 Typing anything causes:
     error checking (liveErrorChecking=True)
     log the new text (textChanged)
@@ -76,9 +83,12 @@ Typing 'error' causes:
     box to have error (errorCheck)
     log the error (hasError)
 
-Typing 'close', 'readonly', or 'disable' and pressing RETURN/ENTER:
-    closes the window ; makes box readonly ; disables box entirely
-    (editingFinished)
+Try typing the following strings and pressing RETURN/ENTER: (editingFinished)
+    'auto' to change the box to automatic colors.
+    'manual' to change the box to manual colors.
+    'readonly' to make the box readonly.
+    'disabled' to disable the box.
+    'close' to close the window.
 """
 )
 
@@ -88,7 +98,7 @@ widget1.errorCheck = lambda: detect_error(widget1)
 widget1.hasError.connect(lambda: announce_error(widget1))
 widget1.editingFinished.connect(lambda: print_entered_text(widget1))
 widget1.setToolTip(
-    """
+"""
 Typing anything causes:
     error checking (liveErrorChecking=True)
 
@@ -119,9 +129,12 @@ Typing then pressing RETURN/ENTER causes:
     log the error (hasError)
     log lack of error (errorCleared)
 
-Typing 'close', 'readonly', or 'disable' and pressing RETURN/ENTER:
-    closes the window ; makes box readonly ; disables box entirely
-    (editingFinished)
+Try typing the following strings and pressing RETURN/ENTER: (editingFinished)
+    'auto' to change the box to automatic colors.
+    'manual' to change the box to manual colors.
+    'readonly' to make the box readonly.
+    'disabled' to disable the box.
+    'close' to close the window.
 """
 )
 
@@ -137,9 +150,12 @@ widget3.setToolTip(
     """
 Typing DOES NOT cause error checking (liveErrorChecking=False)
 
-Typing 'close', 'readonly', or 'disable':
-    closes the window ; makes box readonly ; disables box entirely
-    (textChanged)
+Try typing the following strings: (textChanged)
+    'auto' to change the box to automatic colors.
+    'manual' to change the box to manual colors.
+    'readonly' to make the box readonly.
+    'disabled' to disable the box.
+    'close' to close the window.
 """
 )
 
@@ -154,11 +170,8 @@ layout.addWidget(widget2)
 layout.addWidget(widget3)
 
 info = QtWidgets.QTextEdit(
-    """
-The boxes that accept 
-close/disable/readonly, 
-also accept:
-'auto' and 'manual' to change colors.
+    """Hover over widgets for help.
+    Watch console for logging.
     """, window)
 layout.addWidget(info)
 

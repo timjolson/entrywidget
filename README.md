@@ -1,4 +1,4 @@
-# entryWidget
+# entrywidget
 Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
 
 ## Classes:
