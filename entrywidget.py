@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QLineEdit, QLabel, QWidget, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QLineEdit, QWidget, QHBoxLayout
 from PyQt5.QtCore import pyqtProperty, pyqtSignal
 from PyQt5 import Qt, QtCore
 from PyQt5.QtGui import QColor
@@ -62,15 +62,16 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         Read with obj.text()
 
     signals:
-        hasError(error status)  # emitted when bool(error status) is True
-        errorChanged(error status)  # emitted when error status changes
+        hasError([]],[object],[str])  # emitted when bool(error status) is True
+        errorChanged([],[object],[str])  # emitted when error status changes
         errorCleared  # emitted when bool(error status) is changed to False
-        editingFinished  # emitted when Enter/Return pressed or focus is changed out of QLineEdit
-        textChanged(text)  # emitted when text changes at all
-        textEdited(text)  # emitted when text is changed by user
+        editingFinished([],[str])  # emitted when Enter/Return pressed or focus is changed out of QLineEdit
+        textChanged([],[str])  # emitted when text changes at all
+        textEdited([],[str])  # emitted when text is changed by user
 
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
     :param parent: Parent Qt Object (default None for individual widget)
+    :param errorCheck: callable, returns error status, called with widget as first argument
     :param objectName: str, name of object for logging and within Qt
     :param text: str, starting text
     :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
@@ -81,9 +82,9 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
     name = loggableQtName
-    editingFinished = pyqtSignal()
-    textChanged = pyqtSignal(str)
-    textEdited = pyqtSignal(str)
+    editingFinished = pyqtSignal([],[str])
+    textChanged = pyqtSignal([],[str])
+    textEdited = pyqtSignal([],[str])
 
     defaultColors = {
         'error-readonly': ('orangered', 'white'),
@@ -97,26 +98,33 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     defaultArgs = {
         'autoColors': defaultColors,
         'liveErrorChecking': True,
-        'text': ''
+        'text': '',
+        'errorCheck':None,
+        'readOnly':False
     }
+
+    # explicitly delegate to QLineEdit
     text, palette = delegated.methods('lineEdit', 'text, palette')
     clear, setClearButtonEnabled, isReadOnly = delegated.methods('lineEdit', 'clear setClearButtonEnabled isReadOnly')
     # mousePressEvent, mouseReleaseEvent = delegated.methods('lineEdit', 'mousePressEvent, mouseReleaseEvent')
     keyPressEvent, keyReleaseEvent = delegated.methods('lineEdit', 'keyPressEvent, keyReleaseEvent')
-    focusInEvent, focusOutEvent = delegated.methods('lineEdit', 'focusInEvent, focusOutEvent')
-    edit_text = Qt.pyqtProperty(str, lambda s: s.text(), lambda s, p: s.setText(p))
+    # focusInEvent, focusOutEvent = delegated.methods('lineEdit', 'focusInEvent, focusOutEvent')
+
+    # property for designer plugin usage
+    edit_text = pyqtProperty(str, lambda s: s.text(), lambda s, p: s.setText(p))
 
     def __init__(self, parent=None, **kwargs):
-        autoColors = kwargs.pop('autoColors', type(self).defaultArgs['autoColors'])
-        liveErrorChecking = kwargs.pop('liveErrorChecking', type(self).defaultArgs['liveErrorChecking'])
-        self._setupText = kwargs.pop('text', type(self).defaultArgs['text'])
-        self._setupReadOnly = kwargs.pop('readOnly', False)
+        autoColors = kwargs.pop('autoColors', self.defaultArgs['autoColors'])
+        self._liveErrorChecking = kwargs.pop('liveErrorChecking', self.defaultArgs['liveErrorChecking'])
+        kwargs.setdefault('text', self.defaultArgs['text'])
+        kwargs.setdefault('readOnly', self.defaultArgs['readOnly'])
 
-        QWidget.__init__(self, parent, **kwargs)
+        ec = kwargs.pop('errorCheck', None)
+
+        QWidget.__init__(self, parent)
         ErrorMixin.__init__(self)
         self._error = False
         self._manualColors = False  # whether colors are manually set or automatic
-        self._liveErrorChecking = liveErrorChecking
         self._modified = False
 
         self.logger = logging.getLogger(self.name)
@@ -124,34 +132,41 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
         # verify format of 'autoColors', combine with defaults
         if _isColorDict(autoColors):
-            defcolors = type(self).defaultColors.copy()
+            defcolors = self.defaultColors.copy()
             defcolors.update(autoColors)
             autoColors = defcolors
         elif autoColors is None:
-            autoColors = type(self).defaultColors.copy()
+            autoColors = self.defaultColors.copy()
         else:
             raise TypeError(f"Unrecognized format {autoColors}")
         self._autoColors = autoColors
 
-        self.setupUi()
+        self.setupUi(kwargs)
 
-        self.errorChanged.connect(lambda e: self.refreshColors())
+        if ec is not None:
+            self.errorCheck = lambda: ec(self)
+        self.errorChanged.connect(self.refreshColors)
         self._error = self.errorCheck()
+
         self.refreshColors()
 
-    def setupUi(self):
-        lineEdit = QLineEdit(parent=self, text=self._setupText, readOnly=self._setupReadOnly)
+    def setupUi(self, kwargs):
+        self.textChanged[str].connect(lambda o: self.textChanged.emit())
+        self.textEdited[str].connect(lambda o: self.textEdited.emit())
+        self.editingFinished[str].connect(lambda o: self.editingFinished.emit())
+
+        lineEdit = QLineEdit(parent=self, **kwargs)
         lineEdit.editingFinished.connect(self._onEditingFinished)
         lineEdit.textChanged.connect(self._onTextChanged)
-        lineEdit.setClearButtonEnabled(not self._setupReadOnly)
+
+        lineEdit.setReadOnly(kwargs['readOnly'])
+        lineEdit.setClearButtonEnabled(not kwargs['readOnly'])
 
         layout = QHBoxLayout(self)
         layout.addWidget(lineEdit)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.lineEdit = lineEdit
-
-        del self._setupText, self._setupReadOnly
 
     def _onEditingFinished(self):
         if self._modified is False:
@@ -165,7 +180,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             self.setError(err)
         else:
             self.refreshColors()
-        self.editingFinished.emit()
+        self.editingFinished[str].emit(self.text())
 
     def _onTextChanged(self, text):
         self.logger.log(logging.DEBUG-1, f"_onTextChanged('{text}')")
@@ -175,10 +190,10 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             err = self.errorCheck()
             if err != self.getError():
                 self.setError(err)
-                self.textChanged.emit(text)
+                self.textChanged[str].emit(text)
                 return
         self.refreshColors()
-        self.textChanged.emit(text)
+        self.textChanged[str].emit(text)
 
     def getStatus(self):
         """Get widget status for color selection.
@@ -230,6 +245,11 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
                             f'You provided: {colors}')
 
     def setStyleSheet(self, styleSheet):
+        """Set stylesheet, set color control to manual.
+
+        :param styleSheet: str
+        :return:
+        """
         self._manualColors = True
         super().setStyleSheet(styleSheet)
 
@@ -260,10 +280,10 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
         :param colors: str as key for autoColors dict
                     OR tuple of colors eg.:
-            format: (backgroundColor, textColor)
-            e.g. ('black', 'white')
-                ('#000000', '#FFFFFF')
-            if colors is None, uses already stored autoColors['default']
+                        format: (backgroundColor, textColor)
+                        e.g. ('black', 'white')
+                            ('#000000', '#FFFFFF')
+                *if colors is None, uses already stored autoColors['default']
         :return:
         """
         self.logger.debug(f'setColors({str(colors)})')
@@ -298,14 +318,14 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             }
             Where each X is the respective color tuple matching format:
                 (backgroundColor, textColor)
-            Keys are optional, dict will be used to update currently stored autoColors.
+            *all keys are optional, dict will be used to update currently stored autoColors.
         :return:
         """
         self.logger.debug(f'setAutoColors({str(colors)})')
 
         # update self._autoColors dict with provided colors
         if colors is not None and _isColorDict(colors):
-            _colors = copy(self.defaultColors)
+            _colors = copy(self._autoColors)
             _colors.update(colors)
             self._autoColors = _colors
 
@@ -316,7 +336,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
     def setText(self, text):
         self.lineEdit.setText(text)
         self._modified = True
-        self.editingFinished.emit()
+        self.editingFinished[str].emit(text)
 
     def setReadOnly(self, status):
         """Set the box editable or fixed.
@@ -363,64 +383,16 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
         self.refreshColors()
 
-
-class LabelLineEdit(AutoColorLineEdit):
-    """A QLabel next to an AutoColorLineEdit.
-    QLabel (.label):
-        Change with obj.setLabel('new text')
-        Read with obj.getLabel()
-
-    All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    kwargs listed here will be passed to constructors of QLineEdit/QLabel
-
-    Widget kwargs
-    :param parent: Parent Qt Object (default None for individual widget)
-    :param objectName: str, name of object for logging and within Qt
-    :param readOnly: bool, whether the text box is editable
-
-    QLineEdit kwargs
-    :param text: str, starting text
-    :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
-    :param liveErrorChecking: bool, whether error checking occurs
-                after every keystroke (=True) or only after text editing is finished (=False)
-
-    QLabel kwargs
-    :param label: str, label text
-
-    written by Tim Olson - timjolson@user.noreplay.github.com
-    """
-    defaultArgs = AutoColorLineEdit.defaultArgs.copy()
-    defaultArgs.update(label='Label')
-
-    label_text = Qt.pyqtProperty(str, lambda s: s.getLabel(), lambda s, p: s.setLabel(p))
-
-    def __init__(self, parent=None, **kwargs):
-        self._setupLabelText = kwargs.pop('label', type(self).defaultArgs['label'])
-        AutoColorLineEdit.__init__(self, parent, **kwargs)
-
-    def setupUi(self):
-        AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
-        label = QLabel(parent=self, text=self._setupLabelText)
-        self.layout().insertWidget(0, label)
-        self.label = label
-        # self.label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-
-        del self._setupLabelText
-
-    def setLabel(self, text):
-        """Set QLabel text
-
-        :param text: str, QLabel text
-        :return:
-        """
-        self.logger.debug(f'setLabel(\'{str(text)}\')')
-        self.label.setText(text)
-
-    getLabel = delegated.method('label', 'text')
+    def popArgs(self, kwargs):
+        args = self.defaultArgs.copy()
+        for k in args:
+            if k in kwargs:
+                args[k] = kwargs.pop(k)
+        return args
 
 
-class EntryWidget(LabelLineEdit):
-    """A DictComboBox after a LabelLineEdit.
+class EntryWidget(AutoColorLineEdit):
+    """A DictComboBox after an AutoColorLineEdit.
     DictComboBox (.comboBox):
         Set options with obj.setOptions(['opt1', 'opt2', 'op3'])
         Get options with obj.getOptions()
@@ -429,14 +401,16 @@ class EntryWidget(LabelLineEdit):
         Set/unset ReadOnly with obj.setOptionFixed(bool)
 
     signals:
-        optionChanged(text)  # emits newly selected option when selection is changed
-        optionIndexChanged(int)  # emits new selection index when changed
+        optionChanged([], [str])  # emits newly selected option when selection is changed
+        optionIndexChanged([], [int])  # emits new selection index when changed
+        dataChanged([], [object])  # emits data attached to new selection
 
     All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    kwargs listed here will be passed to constructors of QLineEdit/QLabel/DictComboBox
+    kwargs listed here will be passed to constructors of AutoColorLineEdit/DictComboBox
 
     Widget kwargs
     :param parent: Parent Qt Object (default None for individual widget)
+    :param errorCheck: callable, returns error status, called with widget as first argument
     :param objectName: str, name of object for logging and within Qt
     :param readOnly: bool, whether the text box is editable
 
@@ -446,49 +420,56 @@ class EntryWidget(LabelLineEdit):
     :param liveErrorChecking: bool, whether error checking occurs
                 after every keystroke (=True) or only after text editing is finished (=False)
 
-    QLabel kwargs
-    :param label: str, label text
-
     DictComboBox kwargs
     :param options: [str, str, ...]
     :param optionFixed: bool, whether option is fixed or can be changed
 
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
-    defaultArgs = LabelLineEdit.defaultArgs.copy()
+    defaultArgs = AutoColorLineEdit.defaultArgs.copy()
     defaultArgs.update({'options': list(['opt1', 'opt2']), 'optionFixed': False})
-    optionChanged = pyqtSignal(str)
-    optionIndexChanged = pyqtSignal(int)
+
+    optionChanged = pyqtSignal([],[str])
+    optionIndexChanged = pyqtSignal([],[int])
+    dataChanged = Qt.pyqtSignal([], [object])
 
     getSelected, setSelected, setOptionFixed, currentData = \
         delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled, currentData')
 
-    selected_option = Qt.pyqtProperty(str, lambda s: s.getSelected(), lambda s, p: s.setSelected(p))
+    # selected_option = Qt.pyqtProperty(str, lambda s: s.getSelected(), lambda s, p: s.setSelected(p))
 
     def __init__(self, parent=None, **kwargs):
-        options = kwargs.pop('options', type(self).defaultArgs['options'])
-        self._setupOptionFixed = kwargs.pop('optionFixed', type(self).defaultArgs['optionFixed'])
-        self._setupOptions = options
+        # options = kwargs.pop('options', type(self).defaultArgs['options'])
+        kwargs.setdefault('options', self.defaultArgs['options'])
+        # optionFixed = kwargs.pop('optionFixed', type(self).defaultArgs['optionFixed'])
+        kwargs.setdefault('optionFixed', self.defaultArgs['optionFixed'])
+        self._isReadOnly = kwargs['readOnly'] if 'readOnly' in kwargs else False
 
-        LabelLineEdit.__init__(self, parent, **kwargs)
+        AutoColorLineEdit.__init__(self, parent, **kwargs)
 
-    def setupUi(self):
-        LabelLineEdit.setupUi(self)  # QLineEdit, layout, QLabel
-        combo = DictComboBox(self)
-        combo.currentTextChanged.connect(self.optionChanged.emit)
+    def setupUi(self, kwargs):
+        self.optionChanged[str].connect(lambda o: self.optionChanged.emit())
+        self.optionIndexChanged[int].connect(lambda o: self.optionIndexChanged.emit())
+        self.dataChanged[object].connect(lambda o: self.dataChanged.emit())
+
+        options = kwargs.pop('options')
+        optionFixed = kwargs.pop('optionFixed')
+
+        AutoColorLineEdit.setupUi(self, kwargs)
+
+        combo = DictComboBox(parent=self, options=options)
         combo.currentTextChanged.connect(self._onOptionChanged)
-        combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
         # combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
-        combo.addItems(self._setupOptions)
-        combo.setDisabled(self._setupOptionFixed)
+        combo.setDisabled(optionFixed)
         combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
-        self.layout().insertWidget(2, combo)
+        self.layout().insertWidget(1, combo)
         self.comboBox = combo
-
-        del self._setupOptionFixed, self._setupOptions
 
     def _onOptionChanged(self, text):
         self.setError(self.errorCheck())
+        self.optionChanged[str].emit(text)
+        self.optionIndexChanged[int].emit(self.comboBox.currentIndex())
+        self.dataChanged[object].emit(self.currentData())
 
     def getOptions(self):
         """Get list of DictComboBox options.
@@ -520,8 +501,7 @@ class EntryWidget(LabelLineEdit):
         """
         self.logger.debug(f'setEnabled({str(status)})')
         self.comboBox.setEnabled(status)
-        LabelLineEdit.setEnabled(self, status)  # QLineEdit, refreshColors()
-        self.label.setEnabled(status)
+        AutoColorLineEdit.setEnabled(self, status)  # QLineEdit, refreshColors()
 
         self.setReadOnly(not status)
 
@@ -535,105 +515,14 @@ class EntryWidget(LabelLineEdit):
         """
         self.logger.debug(f'setReadOnly({str(status)})')
         self.setOptionFixed(status)
-        LabelLineEdit.setReadOnly(self, status)  # QLineEdit, refreshColors()
+        AutoColorLineEdit.setReadOnly(self, status)  # QLineEdit, refreshColors()
+        self._isReadOnly = status
+
+    def isReadOnly(self):
+        return self._isReadOnly
 
 
-class ButtonLineEdit(LabelLineEdit):
-    """A QPushButton next to an AutoColorLineEdit.
-    QPushButton (.label):
-        Change with obj.setLabel('new text')
-        Read with obj.getLabel()
-
-    signals:
-        clicked  # emitted when button is pushed
-
-    All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    kwargs listed here will be passed to constructors of QLineEdit/QLabel
-
-    Widget kwargs
-    :param parent: Parent Qt Object (default None for individual widget)
-    :param objectName: str, name of object for logging and within Qt
-    :param readOnly: bool, whether the text box is editable
-
-    QLineEdit kwargs
-    :param text: str, starting text
-    :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
-    :param liveErrorChecking: bool, whether error checking occurs
-                after every keystroke (=True) or only after text editing is finished (=False)
-
-    QPushButton kwargs
-    :param label: str, label text
-
-    written by Tim Olson - timjolson@user.noreplay.github.com
-    """
-    clicked = pyqtSignal()
-
-    def setupUi(self):
-        label = QPushButton(parent=self, text=self._setupLabelText)
-        label.clicked.connect(self.clicked.emit)
-        self.label = label
-
-        AutoColorLineEdit.setupUi(self)  # QLineEdit, layout
-        self.layout().insertWidget(0, label)
-
-        # self.label.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        del self._setupLabelText
-
-
-class ButtonEntryWidget(EntryWidget):
-    """A DictComboBox after a ButtonLineEdit.
-    DictComboBox (.comboBox):
-        Set options with obj.setOptions(['opt1', 'opt2', 'op3'])
-        Get options with obj.getOptions()
-        Set selected with obj.setSelected('opt2')
-        Get selected with obj.getSelected()
-        Set/unset ReadOnly with obj.setOptionFixed(bool)
-
-    signals:
-        clicked  # emitted when button is pushed
-
-    All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    kwargs listed here will be passed to constructors of QLineEdit/QLabel/DictComboBox
-
-    Widget kwargs
-    :param parent: Parent Qt Object (default None for individual widget)
-    :param objectName: str, name of object for logging and within Qt
-    :param readOnly: bool, whether the text box is editable
-
-    QLineEdit kwargs
-    :param text: str, starting text
-    :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
-    :param liveErrorChecking: bool, whether error checking occurs
-                after every keystroke (=True) or only after text editing is finished (=False)
-
-    QPushButton kwargs
-    :param label: str, label text
-
-    DictComboBox kwargs
-    :param options: [str, str, ...]
-    :param optionFixed: bool, whether option is fixed or can be changed
-
-    written by Tim Olson - timjolson@user.noreplay.github.com
-    """
-    clicked = pyqtSignal()
-
-    def setupUi(self):
-        ButtonLineEdit.setupUi(self)  # QLineEdit, layout, QPushButton
-        combo = DictComboBox(self)
-        combo.currentTextChanged.connect(self.optionChanged.emit)
-        combo.currentTextChanged.connect(self._onOptionChanged)
-        combo.currentIndexChanged.connect(self.optionIndexChanged.emit)
-        # combo.setStyleSheet("DictComboBox:focus, DictComboBox:on { background-color: white; border: 2px solid black; }")
-        combo.addItems(self._setupOptions)
-        combo.setDisabled(self._setupOptionFixed)
-        combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
-        self.layout().insertWidget(2, combo)
-        self.comboBox = combo
-
-        del self._setupOptionFixed, self._setupOptions
-
-
-__all__ = ['AutoColorLineEdit', 'LabelLineEdit', 'EntryWidget', 'ButtonLineEdit', 'ButtonEntryWidget']
+__all__ = ['AutoColorLineEdit', 'EntryWidget']
 
 if __name__ == '__main__':
     from qt_utils.designer import install_plugin_files

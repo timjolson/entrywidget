@@ -47,15 +47,13 @@ widgetDefault.setWindowTitle("Basic Widget")
 widgetDefault.show()
 app.exec_()
 
-widgetDefault = AutoColorLineEdit()
-widgetDefault.errorCheck = lambda: detect_error(widgetDefault)
+widgetDefault = AutoColorLineEdit(errorCheck=detect_error)
 widgetDefault.setText("Type 'error'")
 widgetDefault.setWindowTitle("errorCheck")
 widgetDefault.show()
 app.exec_()
 
-widgetDefault = AutoColorLineEdit(liveErrorChecking=False)
-widgetDefault.errorCheck = lambda: detect_error(widgetDefault)
+widgetDefault = AutoColorLineEdit(liveErrorChecking=False, errorCheck=detect_error)
 widgetDefault.setText("Type 'error', press ENTER")
 widgetDefault.setWindowTitle("liveErrorChecking=False")
 widgetDefault.setMinimumWidth(250)
@@ -67,11 +65,11 @@ widget0 = AutoColorLineEdit(
     objectName='widget0',  # object name inside Qt, also can be used for logging
     text='startPrompt',  # box's text on startup
     liveErrorChecking=True,  # whether to run isError() every text change, or only when editing is finished
-    readOnly=False  # whether the text box is readOnly or not
+    readOnly=False,  # whether the text box is readOnly or not
+    errorCheck=detect_error
 )
-widget0.errorCheck = lambda: detect_error(widget0)
-widget0.hasError.connect(lambda e: announce_error(widget0))
-widget0.textChanged.connect(lambda t: print_entered_text(widget0))
+widget0.hasError.connect(lambda: announce_error(widget0))
+widget0.textChanged.connect(lambda: print_entered_text(widget0))
 widget0.editingFinished.connect(lambda: do_whats_typed(widget0))
 widget0.setToolTip(
 """
@@ -93,8 +91,7 @@ Try typing the following strings and pressing RETURN/ENTER: (editingFinished)
 )
 
 
-widget1 = AutoColorLineEdit(objectName='widget1')
-widget1.errorCheck = lambda: detect_error(widget1)
+widget1 = AutoColorLineEdit(objectName='widget1', errorCheck=detect_error)
 widget1.hasError.connect(lambda: announce_error(widget1))
 widget1.editingFinished.connect(lambda: print_entered_text(widget1))
 widget1.setToolTip(
@@ -114,9 +111,9 @@ Hit ENTER / finish editing causes:
 widget2 = AutoColorLineEdit(
     objectName='widget 2',
     text='error',
-    liveErrorChecking=False
+    liveErrorChecking=False,
+    errorCheck = detect_error
 )
-widget2.errorCheck = lambda: detect_error(widget2)
 widget2.hasError.connect(lambda: announce_error(widget2))
 widget2.errorCleared.connect(lambda: announce_no_error(widget2))
 widget2.editingFinished.connect(lambda: do_whats_typed(widget2))

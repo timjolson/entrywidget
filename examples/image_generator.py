@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5.Qt import QApplication
-from entrywidget import AutoColorLineEdit, LabelLineEdit, EntryWidget, ButtonLineEdit, ButtonEntryWidget
+from entrywidget import AutoColorLineEdit, EntryWidget
 
 app = QApplication([])
 
@@ -9,17 +9,14 @@ window.setWindowTitle('EntryWidget examples')
 layout = QVBoxLayout(window)
 
 autocolor = AutoColorLineEdit(window, text='AutoColorLineEdit')
-labeledit = LabelLineEdit(window, label='QLabel', text='AutoColorLineEdit')
-buttonlineedit = ButtonLineEdit(window, label='QPushButton', text='AutoColorLineEdit')
-entry = EntryWidget(window, label="QLabel", text='AutoColorLineEdit', options=['QComboBox'])
-buttonentry = ButtonEntryWidget(window, label="QPushButton", text='AutoColorLineEdit', options=['QComboBox'])
-
+entry = EntryWidget(window, text='EntryWidget', options=['QComboBox'])
 
 layout.addWidget(autocolor)
-layout.addWidget(labeledit)
-layout.addWidget(buttonlineedit)
+layout.addWidget(AutoColorLineEdit(text=''))
+
+errorwidget = AutoColorLineEdit(text='error', errorCheck=lambda w: (w.text() == 'error'))
+layout.addWidget(errorwidget)
 layout.addWidget(entry)
-layout.addWidget(buttonentry)
 
 window.setLayout(layout)
 window.show()

@@ -5,7 +5,7 @@ import sys
 import logging
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
-from entrywidget import AutoColorLineEdit, LabelLineEdit, EntryWidget, ButtonLineEdit, ButtonEntryWidget
+from entrywidget import AutoColorLineEdit, EntryWidget
 
 
 # <editor-fold desc="helper functions, read their doc strings for reference">
@@ -29,9 +29,9 @@ def check_text_matches_option(widget):
     """Compares widget.text() and widget.getSelected(), returns if they are =="""
     return widget.text() == widget.getSelected()
 
-def set_label_to_data(widget):
-    """Uses widget.setLabel() to show selected option's data from widget.currentData()"""
-    widget.setLabel(widget.currentData())
+def print_whatever(*args):
+    """Prints whatever comes in"""
+    print('print_whatever:', args)
 # </editor-fold>
 
 
@@ -43,38 +43,21 @@ window = QWidget()
 # put a vertical layout in the window
 layout = QVBoxLayout(window)
 
-# QLineEdit that changes color automatically (base for the other widgets shown here)
-autocolor = AutoColorLineEdit(window, text='AutoColorLineEdit')
-autocolor.errorCheck = lambda: check_error_typed(autocolor)
+# QLineEdit that changes color automatically
+autocolor = AutoColorLineEdit(window, text='AutoColorLineEdit', errorCheck=check_error_typed)
+autocolor.hasError.connect(lambda: print('!! ERROR !!'))
+autocolor.errorCleared.connect(lambda: print(':) NO MORE ERROR :)'))
 
-# AutoColorLineEdit with a QLabel
-labeledit = LabelLineEdit(window, label='Label', text='LabelLineEdit', liveErrorChecking=False)
-labeledit.errorCheck = lambda: check_error_typed(labeledit)
-
-# AutoColorLineEdit, QLabel, and a QComboBox
-entry = EntryWidget(window, label="Label", text='EntryWidget',
-                    options={'a':'data A', 'b':'data B', 'c':'data C'})
-entry.errorCheck = lambda: check_text_matches_option(entry)
-entry.optionChanged.connect(lambda: set_label_to_data(entry))
-
-# AutoColorLineEdit with a QPushButton
-buttonedit = ButtonLineEdit(window, label='Click here', text='ButtonLineEdit')
-buttonedit.clicked.connect(lambda : show_mouse_click(buttonedit))
-
-# AutoColorLineEdit, QPushButton, and a QComboBox
-buttonentry = ButtonEntryWidget(window, label='red',
-                                options=['white', 'red', 'blue', 'orange'], text='ButtonEntryWidget')
-buttonentry.optionChanged.connect(lambda : change_color_on_option(buttonentry))
-buttonentry.clicked.connect(lambda : buttonentry.setSelected('red'))
+# AutoColorLineEdit and a DictComboBox
+entry = EntryWidget(window, text='EntryWidget',
+                    options={'a':'data A', 'b':'data B', 'c':'data C'},
+                    errorCheck=check_text_matches_option)
+entry.optionChanged[str].connect(print_whatever)
+entry.dataChanged[object].connect(print_whatever)
 
 # add widgets to layout
 layout.addWidget(autocolor)
-layout.addWidget(labeledit)
 layout.addWidget(entry)
-layout.addWidget(buttonedit)
-layout.addWidget(buttonentry)
-
-# window.setLayout(layout)
 
 # show things
 window.show()

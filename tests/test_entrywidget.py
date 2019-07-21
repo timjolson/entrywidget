@@ -2,7 +2,7 @@ import pytest
 import sys
 
 # test helpers
-from qt_utils.helpers_for_tests import (show, change_color_on_option)
+from qt_utils.helpers_for_tests import (show, change_color_on_option, check_error_typed)
 
 # dicts/tuples/lists for color testing (from __init__.py)
 from . import *
@@ -97,14 +97,12 @@ def test_setEnabled(qtbot):
     assert widget.isReadOnly() is True
     assert widget.comboBox.isEnabled() is False
     assert widget.optionFixed() is True
-    assert widget.label.isEnabled() is False
 
     widget.setEnabled(True)
     assert widget.lineEdit.isEnabled() is True
     assert widget.isReadOnly() is False
     assert widget.comboBox.isEnabled() is True
     assert widget.optionFixed() is False
-    assert widget.label.isEnabled() is True
 
 
 def test_setOptions(qtbot):
@@ -132,7 +130,7 @@ def test_setFixedOption(qtbot):
 def test_setOnOptionChanged(qtbot):
     widget = EntryWidget(options=test_options_colors)
     show(locals())
-    widget.optionChanged.connect(lambda t: change_color_on_option(widget))
+    widget.optionChanged.connect(lambda: change_color_on_option(widget))
 
     widget.setSelected(test_options_colors[1])
     assert getCurrentColor(widget.lineEdit, 'Window')[0][0] == test_options_colors[1]

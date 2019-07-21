@@ -2,9 +2,8 @@ import pytest
 import sys
 
 # test helpers
-from qt_utils.helpers_for_tests import (set_title_on_error, change_title_on_typing,
-                                        change_color_on_option, change_label_on_typing,
-                                        check_error_typed, do_whats_typed, show)
+from qt_utils.helpers_for_tests import (set_title_on_error, change_title_on_typing, show,
+                                        change_color_on_option, check_error_typed, do_whats_typed)
 
 # dicts/tuples/lists for color testing (from __init__.py)
 from . import *
@@ -37,6 +36,12 @@ def test_constructor_text(qtbot):
     widget = AutoColorLineEdit(text=test_strings[1])
     show(locals())
     assert widget.text() == test_strings[1]
+
+
+def test_constructor_error(qtbot):
+    widget = AutoColorLineEdit(text='error', errorCheck=check_error_typed)
+    show(locals())
+    assert bool(widget.getError()) is True
 
 
 def test_constructor_readOnly(qtbot):
@@ -102,7 +107,7 @@ def test_setError(qtbot):
 
 def test_textChanged(qtbot):
     widget = AutoColorLineEdit()
-    widget.textChanged.connect(lambda t: change_title_on_typing(widget))
+    widget.textChanged.connect(lambda: change_title_on_typing(widget))
     show(locals())
     assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['blank'][0]
     assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['blank'][1]
@@ -141,8 +146,7 @@ def test_editingFinished(qtbot):
 
 
 def test_errorCheck_live(qtbot):
-    widget = AutoColorLineEdit()
-    widget.errorCheck = lambda: check_error_typed(widget)
+    widget = AutoColorLineEdit(errorCheck=check_error_typed)
     show(locals())
     testlogger.debug('typing...')
     qtbot.keyClicks(widget, 'erro')
@@ -157,8 +161,7 @@ def test_errorCheck_live(qtbot):
 
 
 def test_errorCheck(qtbot):
-    widget = AutoColorLineEdit(liveErrorChecking=False)
-    widget.errorCheck = lambda: check_error_typed(widget)
+    widget = AutoColorLineEdit(liveErrorChecking=False, errorCheck=check_error_typed)
     show(locals())
     testlogger.debug('typing...')
     qtbot.keyClicks(widget, 'erro')
@@ -178,7 +181,7 @@ def test_errorCheck(qtbot):
 
 def test_hasError(qtbot):
     widget = AutoColorLineEdit()
-    widget.hasError.connect(lambda e: set_title_on_error(widget))
+    widget.hasError.connect(lambda: set_title_on_error(widget))
     show(locals())
 
     assert widget.getError() is False
