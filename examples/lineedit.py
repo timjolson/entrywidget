@@ -5,7 +5,7 @@ import sys
 import logging
 
 # log to console
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG-1)
 
 # start Qt
 app = QApplication(sys.argv)
@@ -41,14 +41,14 @@ def do_whats_typed(w):
         w.window().close()
 # </editor-fold>
 
+# widgetDefault = AutoColorLineEdit(text="Basic Widget")
 widgetDefault = AutoColorLineEdit()
 widgetDefault.setText("Basic Widget")
 widgetDefault.setWindowTitle("Basic Widget")
 widgetDefault.show()
 app.exec_()
 
-widgetDefault = AutoColorLineEdit(errorCheck=detect_error)
-widgetDefault.setText("Type 'error'")
+widgetDefault = AutoColorLineEdit(errorCheck=detect_error, text="Type 'error'")
 widgetDefault.setWindowTitle("errorCheck")
 widgetDefault.show()
 app.exec_()
@@ -102,7 +102,7 @@ Typing anything causes:
 Typing 'error' causes:
     box to have error (errorCheck)
     log the error (hasError)
-    
+
 Hit ENTER / finish editing causes:
     print the entered text (editingFinished)
 """
@@ -138,11 +138,11 @@ Try typing the following strings and pressing RETURN/ENTER: (editingFinished)
 print("\n-----------------------")
 widget3 = AutoColorLineEdit(
     text="custom colors",
-    liveErrorChecking=False
+    liveErrorChecking=False,
 )
+widget3.setObjectName('widget 3')
 widget3.textChanged.connect(lambda: do_whats_typed(widget3))
 widget3.setColors(('black', 'white'))
-widget3.setObjectName('widget 3')
 widget3.setToolTip(
     """
 Typing DOES NOT cause error checking (liveErrorChecking=False)

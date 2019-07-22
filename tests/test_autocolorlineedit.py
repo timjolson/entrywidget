@@ -22,7 +22,7 @@ from PyQt5.QtWidgets import QApplication
 import logging
 
 # logging.basicConfig(stream=sys.stdout, filename='/logs/AutoColorLineEdit.log', level=logging.INFO)
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG-1)
 testlogger = logging.getLogger('testLogger')
 app = QApplication(sys.argv)
 
@@ -36,6 +36,32 @@ def test_constructor_text(qtbot):
     widget = AutoColorLineEdit(text=test_strings[1])
     show(locals())
     assert widget.text() == test_strings[1]
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['default'][0]
+
+    widget = AutoColorLineEdit()
+    show(locals())
+    assert widget.text() == ''
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
+
+
+def test_setText(qtbot):
+    widget = AutoColorLineEdit()
+    widget.setText(test_strings[1])
+    show(locals())
+    assert widget.text() == test_strings[1]
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['default'][0]
+
+    widget = AutoColorLineEdit(text='text')
+    widget.setText('')
+    show(locals())
+    assert widget.text() == ''
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
+
+    widget = AutoColorLineEdit()
+    widget.setText('')
+    show(locals())
+    assert widget.text() == ''
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
 
 
 def test_constructor_error(qtbot):
@@ -48,24 +74,26 @@ def test_constructor_readOnly(qtbot):
     widget = AutoColorLineEdit(readOnly=True)
     show(locals())
     assert widget.isReadOnly() is True
+    assert getCurrentColor(widget, 'Window').hex == test_color_dict['readonly'][0]
 
     widget = AutoColorLineEdit(readOnly=False)
     show(locals())
     assert widget.isReadOnly() is False
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
 
 
 def test_constructor_colors(qtbot):
     widget = AutoColorLineEdit(autoColors=test_color_dict)
     show(locals())
 
-    assert getCurrentColor(widget, 'Window').names[0] ==  test_color_dict['blank'][0]
-    assert getCurrentColor(widget, 'WindowText').names[0] ==  test_color_dict['blank'][1]
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict['blank'][1]
     assert widget._manualColors is False
 
     widget = AutoColorLineEdit(autoColors=test_color_dict_good)
     show(locals())
-    assert getCurrentColor(widget, 'Window').names[0] ==  test_color_dict_good['blank'][0]
-    assert getCurrentColor(widget, 'WindowText').names[0] ==  test_color_dict_good['blank'][1]
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict_good['blank'][0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict_good['blank'][1]
     assert widget._manualColors is False
 
     with pytest.raises(AssertionError):
@@ -73,157 +101,6 @@ def test_constructor_colors(qtbot):
 
     with pytest.raises(AssertionError):
         widget = AutoColorLineEdit(autoColors=test_color_tuple)
-
-
-def test_setText(qtbot):
-    widget = AutoColorLineEdit()
-    widget.setText(test_strings[1])
-    show(locals())
-    assert widget.text() == test_strings[1]
-
-
-def test_setReadOnly(qtbot):
-    widget = AutoColorLineEdit(objectName='readonly1')
-    show(locals())
-    widget.setReadOnly(True)
-    assert widget.isReadOnly() is True
-
-    widget = AutoColorLineEdit(objectName='readonly2')
-    show(locals())
-    widget.setReadOnly(False)
-    assert widget.isReadOnly() is False
-
-
-def test_setError(qtbot):
-    widget = AutoColorLineEdit()
-    show(locals())
-    widget.setError(True)
-    assert widget.getError() is True
-    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
-    widget.setError(False)
-    assert widget.getError() is False
-    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['blank'][0]
-
-
-def test_textChanged(qtbot):
-    widget = AutoColorLineEdit()
-    widget.textChanged.connect(lambda: change_title_on_typing(widget))
-    show(locals())
-    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['blank'][0]
-    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['blank'][1]
-
-    qtbot.keyClick(widget, 'a')
-    assert widget.text() == 'a'
-    assert widget.windowTitle() == 'a'
-    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['default'][0]
-    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['default'][1]
-
-    qtbot.keyClick(widget, 'b')
-    assert widget.text() == 'ab'
-    assert widget.windowTitle() == 'ab'
-
-
-def test_editingFinished(qtbot):
-    widget = AutoColorLineEdit()
-    widget.editingFinished.connect(lambda: change_title_on_typing(widget))
-    show(locals())
-    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['blank'][0]
-    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['blank'][1]
-
-    qtbot.keyClick(widget, 'a')
-    assert widget.text() == 'a'
-    assert widget.windowTitle() == ''
-    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['default'][0]
-    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['default'][1]
-
-    qtbot.keyClick(widget, 'b')
-    assert widget.text() == 'ab'
-    assert widget.windowTitle() == ''
-
-    qtbot.keyPress(widget, QtCore.Qt.Key_Return)
-    assert widget.text() == 'ab'
-    assert widget.windowTitle() == 'ab'
-
-
-def test_errorCheck_live(qtbot):
-    widget = AutoColorLineEdit(errorCheck=check_error_typed)
-    show(locals())
-    testlogger.debug('typing...')
-    qtbot.keyClicks(widget, 'erro')
-    assert widget.getError() is False
-    qtbot.keyClicks(widget, 'r')
-    testlogger.debug('finished typing...')
-    assert widget.getError() == 'ERROR'
-    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
-    qtbot.keyPress(widget, QtCore.Qt.Key_Backspace)
-    assert widget.getError() is False
-    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['default'][0]
-
-
-def test_errorCheck(qtbot):
-    widget = AutoColorLineEdit(liveErrorChecking=False, errorCheck=check_error_typed)
-    show(locals())
-    testlogger.debug('typing...')
-    qtbot.keyClicks(widget, 'erro')
-    assert widget.getError() is False
-    qtbot.keyClicks(widget, 'r')
-    testlogger.debug('finished typing...')
-    assert widget.getError() is False
-    qtbot.keyPress(widget, QtCore.Qt.Key_Return)
-    assert widget.getError() == 'ERROR'
-    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
-    qtbot.keyPress(widget, QtCore.Qt.Key_Backspace)
-    assert widget.getError() == 'ERROR'
-    qtbot.keyPress(widget, QtCore.Qt.Key_Return)
-    assert widget.getError() is False
-    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['default'][0]
-
-
-def test_hasError(qtbot):
-    widget = AutoColorLineEdit()
-    widget.hasError.connect(lambda: set_title_on_error(widget))
-    show(locals())
-
-    assert widget.getError() is False
-    widget.setError(False)
-    assert widget.getError() is False
-    widget.setError(True)
-    assert widget.windowTitle() == 'ERROR'
-
-
-def test_all_colors(qtbot):
-    widget = AutoColorLineEdit()
-    show(locals())
-
-    widget.setColors(((240, 248, 255), 'black'))
-    assert getCurrentColor(widget, 'Window')[2] == (240, 248, 255)
-
-    fails = []
-
-    for C in colorList:
-        if C == colorList[-1]:
-            continue
-        testlogger.debug(f"C: {C}")
-        clist = C.names + [C.hex, C.rgb]
-        testlogger.debug(f"clist: {clist}")
-        for c in clist:
-            testlogger.debug('c: ' + str(c))
-            testlogger.debug(f"found: {findColor(c)}")
-            widget.setColors((c, c))
-            testlogger.debug(f"currentColor: {getCurrentColor(widget, 'Window')}")
-            if not getCurrentColor(widget, 'Window').names[0] in clist:
-                testlogger.debug('*****************Color Failed')
-                assert False
-
-
-def test_embed_widgets(qtbot):
-    from PyQt5.QtWidgets import QVBoxLayout, QWidget
-    window = QWidget()
-    layout = QVBoxLayout()
-    layout.addWidget(AutoColorLineEdit())
-    layout.addWidget(AutoColorLineEdit())
-    window.setLayout(layout)
-    show({'qtbot':qtbot, 'widget':window})
 
 
 def test_styleSheet(qtbot):
@@ -382,4 +259,153 @@ def test_setColors(qtbot):
 
     with pytest.raises(AssertionError):
         widget.setColors(test_color_tuple_bad)
+
+
+def test_setReadOnly(qtbot):
+    widget = AutoColorLineEdit(objectName='readonly1')
+    show(locals())
+    widget.setReadOnly(True)
+    assert widget.isReadOnly() is True
+    assert getCurrentColor(widget, 'Window').hex == test_color_dict['readonly'][0]
+
+    widget = AutoColorLineEdit(objectName='readonly2')
+    show(locals())
+    widget.setReadOnly(False)
+    assert widget.isReadOnly() is False
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
+
+
+def test_setError(qtbot):
+    widget = AutoColorLineEdit()
+    show(locals())
+    widget.setError(True)
+    assert widget.getError() is True
+    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
+    widget.setError(False)
+    assert widget.getError() is False
+    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['blank'][0]
+
+
+def test_textChanged(qtbot):
+    widget = AutoColorLineEdit()
+    widget.textChanged.connect(lambda: change_title_on_typing(widget))
+    show(locals())
+    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['blank'][0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['blank'][1]
+
+    qtbot.keyClick(widget, 'a')
+    assert widget.text() == 'a'
+    assert widget.windowTitle() == 'a'
+    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['default'][0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['default'][1]
+
+    qtbot.keyClick(widget, 'b')
+    assert widget.text() == 'ab'
+    assert widget.windowTitle() == 'ab'
+
+
+def test_editingFinished(qtbot):
+    widget = AutoColorLineEdit()
+    widget.editingFinished.connect(lambda: change_title_on_typing(widget))
+    show(locals())
+    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['blank'][0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['blank'][1]
+
+    qtbot.keyClick(widget, 'a')
+    assert widget.text() == 'a'
+    assert widget.windowTitle() == ''
+    assert getCurrentColor(widget, 'Window').names[0] == widget._autoColors['default'][0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == widget._autoColors['default'][1]
+
+    qtbot.keyClick(widget, 'b')
+    assert widget.text() == 'ab'
+    assert widget.windowTitle() == ''
+
+    qtbot.keyPress(widget, QtCore.Qt.Key_Return)
+    assert widget.text() == 'ab'
+    assert widget.windowTitle() == 'ab'
+
+
+def test_errorCheck_live(qtbot):
+    widget = AutoColorLineEdit(errorCheck=check_error_typed)
+    show(locals())
+    testlogger.debug('typing...')
+    qtbot.keyClicks(widget, 'erro')
+    assert widget.getError() is False
+    qtbot.keyClicks(widget, 'r')
+    testlogger.debug('finished typing...')
+    assert widget.getError() == 'ERROR'
+    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
+    qtbot.keyPress(widget, QtCore.Qt.Key_Backspace)
+    assert widget.getError() is False
+    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['default'][0]
+
+
+def test_errorCheck(qtbot):
+    widget = AutoColorLineEdit(liveErrorChecking=False, errorCheck=check_error_typed)
+    show(locals())
+    testlogger.debug('typing...')
+    qtbot.keyClicks(widget, 'erro')
+    assert widget.getError() is False
+    qtbot.keyClicks(widget, 'r')
+    testlogger.debug('finished typing...')
+    assert widget.getError() is False
+    qtbot.keyPress(widget, QtCore.Qt.Key_Return)
+    assert widget.getError() == 'ERROR'
+    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['error'][0]
+    qtbot.keyPress(widget, QtCore.Qt.Key_Backspace)
+    assert widget.getError() == 'ERROR'
+    qtbot.keyPress(widget, QtCore.Qt.Key_Return)
+    assert widget.getError() is False
+    assert getCurrentColor(widget, 'Window').names[0] == widget.defaultColors['default'][0]
+
+
+def test_hasError(qtbot):
+    widget = AutoColorLineEdit()
+    widget.hasError.connect(lambda: set_title_on_error(widget))
+    show(locals())
+
+    assert widget.getError() is False
+    widget.setError(False)
+    assert widget.getError() is False
+    widget.setError(True)
+    assert widget.windowTitle() == 'ERROR'
+
+
+def test_all_colors(qtbot):
+    widget = AutoColorLineEdit()
+    show(locals())
+
+    widget.setColors(((240, 248, 255), 'black'))
+    assert getCurrentColor(widget, 'Window')[2] == (240, 248, 255)
+
+    fails = []
+
+    for C in colorList:
+        if C == colorList[-1]:
+            continue
+        testlogger.debug(f"C: {C}")
+        clist = C.names + [C.hex, C.rgb]
+        testlogger.debug(f"clist: {clist}")
+        for c in clist:
+            testlogger.debug('c: ' + str(c))
+            testlogger.debug(f"found: {findColor(c)}")
+            widget.setColors((c, c))
+            cc = getCurrentColor(widget, 'Window')
+            testlogger.debug(f"currentColor: {cc}")
+            if isinstance(c, str):
+                assert c in [*cc.names, cc.hex]
+            else:
+                assert c in cc
+            assert getCurrentColor(widget, 'Window').names[0] in clist
+
+
+def test_embed_widgets(qtbot):
+    from PyQt5.QtWidgets import QVBoxLayout, QWidget
+    window = QWidget()
+    layout = QVBoxLayout()
+    layout.addWidget(AutoColorLineEdit())
+    layout.addWidget(AutoColorLineEdit())
+    window.setLayout(layout)
+    show({'qtbot':qtbot, 'widget':window})
 

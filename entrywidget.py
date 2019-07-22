@@ -121,7 +121,11 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
         ec = kwargs.pop('errorCheck', None)
 
-        QWidget.__init__(self, parent)
+        on = kwargs.pop('objectName', None)
+        if on:
+            QWidget.__init__(self, parent, objectName=on)
+        else:
+            QWidget.__init__(self, parent)
         ErrorMixin.__init__(self)
         self._error = False
         self._manualColors = False  # whether colors are manually set or automatic
@@ -170,6 +174,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
     def _onEditingFinished(self):
         if self._modified is False:
+            self.logger.log(logging.DEBUG - 1, '_onEditingFinished SKIPPED')
             return
         self.logger.log(logging.DEBUG-1, '_onEditingFinished')
 
@@ -190,8 +195,8 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             err = self.errorCheck()
             if err != self.getError():
                 self.setError(err)
-                self.textChanged[str].emit(text)
-                return
+                # self.textChanged[str].emit(text)
+                # return
         self.refreshColors()
         self.textChanged[str].emit(text)
 
@@ -274,6 +279,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
         if self._manualColors is False:
             super().setStyleSheet(self.makeStyleString())
+            self.style().polish(self)
 
     def setColors(self, colors=None):
         """Manually set box's colors. Will remain set until .setAutoColors()
@@ -334,8 +340,8 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self.refreshColors()
 
     def setText(self, text):
+        self.logger.debug(f"setText('{text}')")
         self.lineEdit.setText(text)
-        self._modified = True
         self.editingFinished[str].emit(text)
 
     def setReadOnly(self, status):
