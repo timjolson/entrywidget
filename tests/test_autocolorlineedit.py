@@ -96,10 +96,10 @@ def test_constructor_colors(qtbot):
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict_good['blank'][1]
     assert widget._manualColors is False
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         widget = AutoColorLineEdit(autoColors=test_color_dict_bad)
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         widget = AutoColorLineEdit(autoColors=test_color_tuple)
 
 
@@ -236,9 +236,9 @@ def test_setAutoColors(qtbot):
     assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['default'][0]
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict['default'][1]
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         widget.setAutoColors(test_color_tuple)
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         widget.setAutoColors(test_color_dict_bad)
 
 
@@ -257,7 +257,7 @@ def test_setColors(qtbot):
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_tuple_good[1]
     assert widget._manualColors is True
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(TypeError):
         widget.setColors(test_color_tuple_bad)
 
 

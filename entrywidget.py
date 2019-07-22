@@ -24,12 +24,9 @@ def _isColorTuple(colors):
     if colors is None:
         return False
 
-    assert isinstance(colors, tuple), \
-        'provide a tuple of color strings, check help(setColor) for more info'
-    assert len(colors) == 2, \
-        'provide a tuple of color strings, check help(setColor) for more info'
-    assert all(isinstance(c, (str, tuple, QColor)) for c in colors), \
-        'provide a tuple of color strings or QtGui.QColor\'s, check help(setColor) for more info'
+    if not isinstance(colors, (tuple, list)): return False
+    if not len(colors) == 2: return False
+    if not all(isinstance(c, (str, tuple, list, QColor)) for c in colors): return False
     return True
 
 
@@ -46,12 +43,8 @@ def _isColorDict(colors):
         return False
 
     # check format
-    assert isinstance(colors, dict), \
-        'provide a color dict; check help(setAutoColors) for more info'
-    try:
-        all(_isColorTuple(c) for c in colors.values())
-    except AssertionError:
-        raise AssertionError('provide a color dict; check help(setAutoColors) for more info')
+    if not isinstance(colors, dict): return False
+    if not all(_isColorTuple(c) for c in colors.values()): return False
     return True
 
 
@@ -115,6 +108,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
 
     def __init__(self, parent=None, **kwargs):
         autoColors = kwargs.pop('autoColors', self.defaultArgs['autoColors'])
+        colors = kwargs.pop('colors', None)
         self._liveErrorChecking = kwargs.pop('liveErrorChecking', self.defaultArgs['liveErrorChecking'])
         kwargs.setdefault('text', self.defaultArgs['text'])
         kwargs.setdefault('readOnly', self.defaultArgs['readOnly'])
@@ -139,11 +133,11 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
             defcolors = self.defaultColors.copy()
             defcolors.update(autoColors)
             autoColors = defcolors
-        elif autoColors is None:
-            autoColors = self.defaultColors.copy()
         else:
             raise TypeError(f"Unrecognized format {autoColors}")
         self._autoColors = autoColors
+        if colors:
+            self.setColors(colors)
 
         self.setupUi(kwargs)
 
@@ -234,7 +228,7 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         elif isinstance(colors, str):
             colors = self._autoColors[colors]
 
-        if isinstance(colors, tuple) and _isColorTuple(colors):
+        if _isColorTuple(colors):
             v0, v1 = colors[0], colors[1]
             if isinstance(v0, tuple):
                 v0 = "rgb{}".format(str(v0[:])).replace(' ', '')
@@ -298,9 +292,11 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         if colors is None:
             self.logger.log(logging.DEBUG-1, 'setColors(default)')
             self.setColors(self._autoColors['default'])
-        else:
+        elif _isColorTuple(colors):
             self.logger.log(logging.DEBUG-1, 'setColors(makeStyleString)')
             super().setStyleSheet(self.makeStyleString(colors))
+        else:
+            raise TypeError(f"Provide `None` or a color tuple, not {colors}")
 
     def autoColors(self):
         """Get current color settings dict.
@@ -330,10 +326,14 @@ class AutoColorLineEdit(QWidget, ErrorMixin):
         self.logger.debug(f'setAutoColors({str(colors)})')
 
         # update self._autoColors dict with provided colors
-        if colors is not None and _isColorDict(colors):
+        if _isColorDict(colors):
             _colors = copy(self._autoColors)
             _colors.update(colors)
             self._autoColors = _colors
+        elif colors is None:
+            pass
+        else:
+            raise TypeError(f"Provide `None` or a color dict, not {colors}")
 
         # set mode to automatic
         self._manualColors = False

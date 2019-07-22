@@ -19,12 +19,6 @@ def change_color_on_option(entry_widget):
 # </editor-fold>
 
 
-print("\n----------------------- Default")
-widget = EntryWidget()
-widget.setWindowTitle('Default')
-widget.show()
-app.exec_()
-
 print("\n----------------------- Standard Usage")
 widget = EntryWidget(options=['opt1', 'opt2', 'opt3'], text='Prompt Text')
 widget.setWindowTitle('Standard usage')
