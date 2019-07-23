@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import QApplication
 import logging
 
 # logging.basicConfig(stream=sys.stdout, filename='/logs/EntryWidget.log', level=logging.INFO)
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 app = QApplication(sys.argv)
 
 
@@ -33,8 +33,8 @@ def test_constructor_readOnly(qtbot):
     show(locals())
     assert widget.lineEdit.isReadOnly() is True
     assert widget.isReadOnly() is True
-    assert widget.comboBox.isEnabled() is True
-    assert widget.optionFixed() is False
+    assert widget.comboBox.isEnabled() is False
+    assert widget.optionFixed() is True
 
     widget = EntryWidget(readOnly=False)
     show(locals())

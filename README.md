@@ -4,7 +4,7 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
 ## Classes:
     
     AutoColorLineEdit  # QLineEdit with automatic colors
-    EntryWidget  # LabelLineEdit with QComboBox on right side
+    EntryWidget  # QLineEdit with QComboBox on right side
     
 ![alt text](examples/image.png)
 
@@ -17,30 +17,26 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
 ## doc strings:
 
 #### AutoColorLineEdit
-    A QLineEdit (in a QHBoxLayout) with error checking options with automatic color updates.
-    QLineEdit (.lineEdit):
-        Change with obj.setText('new text')
-        Read with obj.text()
+    A QLineEdit with error checking options and automatic color updates.
+        Useful signals:
+            hasError([]],[object],[str])  # emitted when bool(error status) is True
+            errorChanged([],[object],[str])  # emitted when error status changes
+            errorCleared  # emitted when bool(error status) is changed to False
+            editingFinished  # emitted when Enter/Return pressed or focus is changed out of QLineEdit
+            textChanged(str)  # emitted when text changes at all
 
-    signals:
-        hasError([]],[object],[str])  # emitted when bool(error status) is True
-        errorChanged([],[object],[str])  # emitted when error status changes
-        errorCleared  # emitted when bool(error status) is changed to False
-        editingFinished([],[str])  # emitted when Enter/Return pressed or focus is changed out of QLineEdit
-        textChanged([],[str])  # emitted when text changes at all
-        textEdited([],[str])  # emitted when text is changed by user
+        All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
+        :param parent: Parent Qt Object (default None for individual widget)
+        :param errorCheck: callable, returns error status, called with widget as first argument
+        :param objectName: str, name of object for logging and within Qt
+        :param text: str, starting text
+        :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
+        :param colors: tuple of color strings/QColor/rgb tuples; see help(setManualColors) for formatting
+        :param readOnly: bool, whether the text box is editable
+        :param liveErrorChecking: bool, whether error checking occurs
+                    after every keystroke (=True) or only after text editing is finished (=False)
 
-    All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
-    :param parent: Parent Qt Object (default None for individual widget)
-    :param errorCheck: callable, returns error status, called with widget as first argument
-    :param objectName: str, name of object for logging and within Qt
-    :param text: str, starting text
-    :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
-    :param readOnly: bool, whether the text box is editable
-    :param liveErrorChecking: bool, whether error checking occurs
-                after every keystroke (=True) or only after text editing is finished (=False)
 
-        
 #### EntryWidget
     A DictComboBox after an AutoColorLineEdit.
     DictComboBox (.comboBox):
@@ -50,7 +46,7 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
         Get selected with obj.getSelected()
         Set/unset ReadOnly with obj.setOptionFixed(bool)
 
-    signals:
+    Additional signals (on top of AutoColorLineEdit signals):
         optionChanged([], [str])  # emits newly selected option when selection is changed
         optionIndexChanged([], [int])  # emits new selection index when changed
         dataChanged([], [object])  # emits data attached to new selection
@@ -67,10 +63,11 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
     QLineEdit kwargs
     :param text: str, starting text
     :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
+    :param colors: tuple of colors; see help(setManualColors) for formatting
     :param liveErrorChecking: bool, whether error checking occurs
                 after every keystroke (=True) or only after text editing is finished (=False)
 
     DictComboBox kwargs
-    :param options: [str, str, ...]
+    :param options: [str, str, ...] or {str:data, str:data, ...}
     :param optionFixed: bool, whether option is fixed or can be changed
 

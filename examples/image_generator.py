@@ -9,13 +9,14 @@ window.setWindowTitle('EntryWidget examples')
 layout = QVBoxLayout(window)
 
 autocolor = AutoColorLineEdit(window, text='AutoColorLineEdit')
-entry = EntryWidget(window, text='EntryWidget', options=['QComboBox'])
-
 layout.addWidget(autocolor)
+
 layout.addWidget(AutoColorLineEdit(text=''))
 
 errorwidget = AutoColorLineEdit(text='error', errorCheck=lambda w: (w.text() == 'error'))
 layout.addWidget(errorwidget)
+
+entry = EntryWidget(window, text='EntryWidget', options=['QComboBox'])
 layout.addWidget(entry)
 
 window.setLayout(layout)

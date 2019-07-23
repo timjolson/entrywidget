@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QApplication
 # logging stuff
 import logging
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 testlogger = logging.getLogger('testLogger')
 app = QApplication(sys.argv)
 
