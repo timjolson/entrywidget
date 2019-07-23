@@ -48,7 +48,286 @@ def _isColorDict(colors):
     return True
 
 
-class AutoColorLineEdit(QWidget, ErrorMixin):
+class AutoColorLineEdit(QLineEdit, ErrorMixin):
+    """A QLineEdit with error checking options and automatic color updates.
+        Useful signals:
+            hasError([]],[object],[str])  # emitted when bool(error status) is True
+            errorChanged([],[object],[str])  # emitted when error status changes
+            errorCleared  # emitted when bool(error status) is changed to False
+            editingFinished  # emitted when Enter/Return pressed or focus is changed out of QLineEdit
+            textChanged(str)  # emitted when text changes at all
+
+        All arguments are optional and must be provided by keyword, except 'parent' which can be positional.
+        :param parent: Parent Qt Object (default None for individual widget)
+        :param errorCheck: callable, returns error status, called with widget as first argument
+        :param objectName: str, name of object for logging and within Qt
+        :param text: str, starting text
+        :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
+        :param colors: tuple of color strings/QColor/rgb tuples; see help(setManualColors) for formatting
+        :param readOnly: bool, whether the text box is editable
+        :param liveErrorChecking: bool, whether error checking occurs
+                    after every keystroke (=True) or only after text editing is finished (=False)
+
+        written by Tim Olson - timjolson@user.noreplay.github.com
+        """
+    name = loggableQtName
+
+    defaultColors = {
+        'error-readonly': ('orangered', 'white'),
+        'error': ('yellow', 'black'),
+        'default': ('white', 'black'),
+        'blank': ('lightblue', 'black'),
+        'disabled': ('#F0F0F0', 'black'),
+        'readonly': ('#F0F0F0', 'black')
+    }
+
+    defaultArgs = {
+        'autoColors': None,
+        'colors': None,
+        'liveErrorChecking': True,
+        'errorCheck': None,
+    }
+
+    def __init__(self, parent=None, **kwargs):
+        self._autoColors = self.defaultColors.copy()
+        self._liveErrorChecking = kwargs.pop('liveErrorChecking', self.defaultArgs['liveErrorChecking'])
+
+        autoColors = kwargs.pop('autoColors', None)
+        colors = kwargs.pop('colors', self.defaultArgs['colors'])
+        ec = kwargs.pop('errorCheck', self.defaultArgs['errorCheck'])
+
+        QLineEdit.__init__(self, parent=parent, **kwargs)
+        ErrorMixin.__init__(self)
+
+        self.logger = logging.getLogger(self.name)
+        self.logger.addHandler(logging.NullHandler())
+
+        self.textChanged[str].connect(self._onTextChanged)
+        self.textChanged[str].connect(lambda o: self.update())
+        self.editingFinished.connect(self._onEditingFinished)
+        self.errorChanged[object].connect(lambda o: self.update())
+
+        if autoColors:
+            self.setAutoColors(autoColors)
+        if colors:
+            self.setManualColors(colors)
+        if not autoColors and not colors:
+            super().setStyleSheet(self.makeStyleString())
+
+        if ec is not None:
+            self.errorCheck = lambda: ec(self)
+        self._error = self.errorCheck()
+
+    def _onEditingFinished(self):
+        self.logger.log(logging.DEBUG, 'editingFinished()')
+        self.setError(self.errorCheck())
+
+    def _onTextChanged(self, text):
+        self.logger.log(logging.DEBUG, f"textChanged('{text}')")
+
+        if self._liveErrorChecking is True:
+            err = self.errorCheck()
+            if err != self.getError():
+                self.setError(err)
+
+    def getStatus(self):
+        """Get widget status for color selection.
+
+        :return: str, key for autoColors[key]
+        """
+        if bool(self._error):
+            status = 'error'
+            if self.isEnabled() is False or self.isReadOnly() is True:
+                status += '-readonly'
+        elif self.isEnabled() is False:
+            status = 'disabled'
+        elif self.isReadOnly() is True:
+            status = 'readonly'
+        elif self.text() == '':
+            status = 'blank'
+        else:
+            status = 'default'
+        return status
+    status = pyqtProperty(str, getStatus)
+
+    def makeStyleString(self, colors=None):
+        """Get a styleSheet string built from provided 'colors' or the defaults.
+
+        :param colors: None-> use default autoColors
+            OR str-> key for autoColors dict
+            OR colors dict->use provided colors
+            OR colors tuple->use provided colors
+        :return: str, use in setStyleSheet()
+        """
+        self.logger.log(logging.DEBUG - 1, f"makeStyleString({colors})")
+        if colors is None:
+            colors = self._autoColors
+        elif isinstance(colors, str):
+            colors = self._autoColors[colors]
+
+        if _isColorDict(colors):
+            string = ''
+            for k, v in colors.items():
+                v0, v1 = v
+                if isinstance(v0, tuple):
+                    v0 = "rgb{}".format(str(v0[:])).replace(' ', '')
+                if isinstance(v1, tuple):
+                    v1 = "rgb{}".format(str(v1[:])).replace(' ', '')
+
+                string += "AutoColorLineEdit[status='" + str(k) + "'] {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
+
+        elif _isColorTuple(colors):
+            v0, v1 = colors[0], colors[1]
+            if isinstance(v0, tuple):
+                v0 = "rgb{}".format(str(v0[:])).replace(' ', '')
+            if isinstance(v1, tuple):
+                v1 = "rgb{}".format(str(v1[:])).replace(' ', '')
+
+            string = "AutoColorLineEdit {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
+
+        else:
+            raise TypeError('makeStyleString takes a colors dict (see .setAutoColors for format). ' +
+                            f'You provided: {colors}')
+
+        return string
+
+    def setStyleSheet(self, styleSheet):
+        """Set stylesheet, set color control to manual.
+
+        :param styleSheet: str
+        :return:
+        """
+        self.logger.log(logging.DEBUG, f"setStyleSheet({styleSheet})")
+        super().setStyleSheet(styleSheet)
+
+    def setLiveErrorChecking(self, mode):
+        """Enable or disable liveErrorChecking.
+
+        :param mode: bool
+        :return:
+        """
+        self.logger.log(logging.DEBUG, f'setLiveErrorChecking({mode})')
+        self._liveErrorChecking = mode
+
+        if mode is True:
+            self.setError(self.errorCheck())
+
+    def update(self):
+        """Update widget colors if set to automatic."""
+        self.logger.log(logging.DEBUG - 1, "update: status: '%s' error: '%s' disabled: %s readonly: %s text: '%s'"%
+                        (self.status, str(self.getError()), str(not self.isEnabled()), str(self.isReadOnly()), self.text())
+                        )
+        self.style().polish(self)
+
+    def setManualColors(self, colors=None):
+        """Manually set box's colors. Will remain set until .setAutoColors()
+
+        :param colors: str as key for autoColors dict
+                    OR tuple of colors eg.:
+                        format: (backgroundColor, textColor)
+                        e.g. ('black', '#000000')
+                            ('#FFFFFF', 'white')
+                            (QColor, '#FFFFFF')
+                *if colors is None, uses already stored autoColors['default']
+        :return:
+        """
+        self.logger.debug(f'setManualColors({str(colors)})')
+
+        if colors is None:
+            colors = self._autoColors['default']
+        if _isColorTuple(colors):
+            super().setStyleSheet(self.makeStyleString(colors))
+        else:
+            raise TypeError(f"Provide `None` or a color tuple, not {colors}")
+
+    def autoColors(self):
+        """Get current color settings dict.
+        :return: dict
+        """
+        return self._autoColors
+
+    def setAutoColors(self, colors=None):
+        """Set the automatic colors, changes mode to use them until .setManualColors()
+        If colors is `None`, uses already stored automatic colors.
+
+        A custom set of `status`s can be used by overriding `getStatus` and providing a custom dict.
+
+        :param colors: dict of tuples of color strings or QColors
+            format:
+            colors={
+                'default': X,           # normal editing mode
+                'blank': X,             # box is editable but blank
+                'disabled': X,          # box is not editable or selectable
+                'readonly': X,          # box is not editable
+                'error': X,             # box is editable and has an error
+                'error-readonly': X     # box is not editable, but has an error
+            }
+            Where each X is the respective color tuple matching format:
+                (backgroundColor, textColor)
+                *see `setManualColors`
+            *all keys are optional, dict will be used to update currently stored autoColors.
+        :return:
+        """
+        self.logger.debug(f'setAutoColors({str(colors)})')
+
+        # update self._autoColors dict with provided colors
+        if _isColorDict(colors):
+            _colors = copy(self._autoColors)
+            _colors.update(colors)
+            self._autoColors = _colors
+            super().setStyleSheet(self.makeStyleString(_colors))
+        elif colors is None:
+            super().setStyleSheet(self.makeStyleString(colors))
+        else:
+            raise TypeError(f"Provide `None` or a color dict, not {colors}")
+
+        self.update()
+
+    def setReadOnly(self, status):
+        """Set the box editable or fixed.
+
+        :param status: box's editable status
+        :return:
+        """
+        self.logger.debug(f'setReadOnly({str(status)})')
+
+        super().setReadOnly(status)
+        self.setClearButtonEnabled(not status)
+        self.update()
+
+    # def setDisabled(self, status=True):
+    #     """Set the box disabled or enabled.
+    #
+    #     :param status: NOT box's enabled status
+    #         True: unselectable, uneditable
+    #         False: selectable (editability dictated by readOnly)
+    #     :return:
+    #     """
+    #     self.setEnabled(not status)
+
+    def setEnabled(self, status=True):
+        """Set the box disabled or enabled.
+
+        :param status: box's enabled status
+            True: selectable (editability dictated by readOnly)
+            False: unselectable, uneditable
+        :return:
+        """
+        self.logger.debug(f'setEnabled({str(status)})')
+
+        super().setEnabled(status)
+        self.setClearButtonEnabled(status)
+        self.update()
+
+    def popArgs(self, kwargs):
+        args = self.defaultArgs.copy()
+        for k in args:
+            if k in kwargs:
+                args[k] = kwargs.pop(k)
+        return args
+
+
+class AutoColorLineEdit1(QWidget, ErrorMixin):
     """A QLineEdit (in a QHBoxLayout) with error checking options with automatic color updates.
     QLineEdit (.lineEdit):
         Change with obj.setText('new text')

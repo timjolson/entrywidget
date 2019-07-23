@@ -21,8 +21,7 @@ from PyQt5.QtWidgets import QApplication
 # logging stuff
 import logging
 
-# logging.basicConfig(stream=sys.stdout, filename='/logs/AutoColorLineEdit.log', level=logging.INFO)
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG-1)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 testlogger = logging.getLogger('testLogger')
 app = QApplication(sys.argv)
 
@@ -82,25 +81,46 @@ def test_constructor_readOnly(qtbot):
     assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
 
 
-def test_constructor_colors(qtbot):
+def test_constructor_autocolors(qtbot):
     widget = AutoColorLineEdit(autoColors=test_color_dict)
+    assert len(widget.styleSheet().split('\n')) == 7
     show(locals())
 
     assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict['blank'][1]
-    assert widget._manualColors is False
 
     widget = AutoColorLineEdit(autoColors=test_color_dict_good)
+    assert len(widget.styleSheet().split('\n')) == 7
     show(locals())
     assert getCurrentColor(widget, 'Window').names[0] == test_color_dict_good['blank'][0]
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict_good['blank'][1]
-    assert widget._manualColors is False
 
     with pytest.raises(TypeError):
         widget = AutoColorLineEdit(autoColors=test_color_dict_bad)
 
     with pytest.raises(TypeError):
         widget = AutoColorLineEdit(autoColors=test_color_tuple)
+
+
+def test_constructor_colors(qtbot):
+    widget = AutoColorLineEdit(colors=test_color_tuple_good)
+    assert len(widget.styleSheet().split('\n')) == 2
+    show(locals())
+
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_tuple_good[0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == test_color_tuple_good[1]
+
+    widget = AutoColorLineEdit(colors=test_color_tuple)
+    assert len(widget.styleSheet().split('\n')) == 2
+    show(locals())
+    assert getCurrentColor(widget, 'Window').names[0] == test_color_tuple[0]
+    assert getCurrentColor(widget, 'WindowText').names[0] == test_color_tuple[1]
+
+    with pytest.raises(TypeError):
+        widget = AutoColorLineEdit(colors=test_color_tuple_bad)
+
+    with pytest.raises(TypeError):
+        widget = AutoColorLineEdit(colors=test_color_dict)
 
 
 def test_styleSheet(qtbot):
@@ -225,11 +245,11 @@ def test_setAutoColors(qtbot):
 # check auto colors after manual colors
     widget = AutoColorLineEdit()
     show(locals())
-    widget.setColors(test_color_tuple)
+    widget.setManualColors(test_color_tuple)
     assert getCurrentColor(widget, 'Window').names[0] == test_color_tuple[0]
-    assert widget._manualColors is True
+    # assert widget._manualColors is True
     widget.setAutoColors()
-    assert widget._manualColors is False
+    # assert widget._manualColors is False
     assert getCurrentColor(widget, 'Window').names[0] == test_color_dict['blank'][0]
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_dict['blank'][1]
     qtbot.keyClick(widget, 'a')
@@ -245,20 +265,20 @@ def test_setAutoColors(qtbot):
 def test_setColors(qtbot):
     widget = AutoColorLineEdit()
     show(locals())
-    assert widget._manualColors is False
+    # assert widget._manualColors is False
 
-    widget.setColors(test_color_tuple)
+    widget.setManualColors(test_color_tuple)
     assert getCurrentColor(widget, 'Window').names[0] == test_color_tuple[0]
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_tuple[1]
-    assert widget._manualColors is True
+    # assert widget._manualColors is True
 
-    widget.setColors(test_color_tuple_good)
+    widget.setManualColors(test_color_tuple_good)
     assert getCurrentColor(widget, 'Window').names[0] == test_color_tuple_good[0]
     assert getCurrentColor(widget, 'WindowText').names[0] == test_color_tuple_good[1]
-    assert widget._manualColors is True
+    # assert widget._manualColors is True
 
     with pytest.raises(TypeError):
-        widget.setColors(test_color_tuple_bad)
+        widget.setManualColors(test_color_tuple_bad)
 
 
 def test_setReadOnly(qtbot):
@@ -376,7 +396,7 @@ def test_all_colors(qtbot):
     widget = AutoColorLineEdit()
     show(locals())
 
-    widget.setColors(((240, 248, 255), 'black'))
+    widget.setManualColors(((240, 248, 255), 'black'))
     assert getCurrentColor(widget, 'Window')[2] == (240, 248, 255)
 
     fails = []
@@ -390,7 +410,7 @@ def test_all_colors(qtbot):
         for c in clist:
             testlogger.debug('c: ' + str(c))
             testlogger.debug(f"found: {findColor(c)}")
-            widget.setColors((c, c))
+            widget.setManualColors((c, c))
             cc = getCurrentColor(widget, 'Window')
             testlogger.debug(f"currentColor: {cc}")
             if isinstance(c, str):

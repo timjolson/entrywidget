@@ -15,7 +15,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # <editor-fold desc="Support Funcs">
 def change_color_on_option(entry_widget):
     print('change_color to', entry_widget.getSelected())
-    entry_widget.setColors((entry_widget.getSelected(), 'black'))
+    entry_widget.setManualColors((entry_widget.getSelected(), 'black'))
 # </editor-fold>
 
 

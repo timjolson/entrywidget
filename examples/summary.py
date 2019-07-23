@@ -21,9 +21,9 @@ def show_mouse_click(widget):
     widget.setText('clicked')
 
 def change_color_on_option(widget):
-    """Uses widget.setColors() to change QLineEdit colors to (widget.getSelected(), 'black')"""
+    """Uses widget.setManualColors() to change QLineEdit colors to (widget.getSelected(), 'black')"""
     print('change_color to', widget.getSelected())
-    widget.setColors((widget.getSelected(), 'black'))
+    widget.setManualColors((widget.getSelected(), 'black'))
 
 def check_text_matches_option(widget):
     """Compares widget.text() and widget.getSelected(), returns if they are =="""

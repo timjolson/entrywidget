@@ -5,13 +5,14 @@ import sys
 import logging
 
 # log to console
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG-1)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 # start Qt
 app = QApplication(sys.argv)
 
 # <editor-fold desc="Support Funcs">
 def detect_error(w):
+    print("Checking for 'error'")
     return w.text() == 'error'
 
 def announce_error(w):
@@ -29,26 +30,25 @@ def do_whats_typed(w):
         w.setAutoColors()
     if w.text() == 'manual':
         print(w.name + ": Changing to Manual colors")
-        w.setColors(('black', 'white'))
+        w.setManualColors(('black', 'white'))
     if w.text() == 'readonly':
         w.setReadOnly(True)
         print(w.name + ': Entry is ReadOnly')
     if w.text() == 'disable':
-        w.setEnabled(False)
+        w.setDisabled()
         print(w.name + ': Entry is Disabled')
     if w.text() == 'close':
         print(w.name + ': Closing Window')
         w.window().close()
 # </editor-fold>
 
-# widgetDefault = AutoColorLineEdit(text="Basic Widget")
-widgetDefault = AutoColorLineEdit()
-widgetDefault.setText("Basic Widget")
+widgetDefault = AutoColorLineEdit(text="Basic Widget")
 widgetDefault.setWindowTitle("Basic Widget")
 widgetDefault.show()
 app.exec_()
 
 widgetDefault = AutoColorLineEdit(errorCheck=detect_error, text="Type 'error'")
+widgetDefault.hasError.connect(lambda: announce_error(widgetDefault))
 widgetDefault.setWindowTitle("errorCheck")
 widgetDefault.show()
 app.exec_()
@@ -56,6 +56,7 @@ app.exec_()
 widgetDefault = AutoColorLineEdit(liveErrorChecking=False, errorCheck=detect_error)
 widgetDefault.setText("Type 'error', press ENTER")
 widgetDefault.setWindowTitle("liveErrorChecking=False")
+widgetDefault.errorCleared.connect(lambda: announce_no_error(widgetDefault))
 widgetDefault.setMinimumWidth(250)
 widgetDefault.show()
 app.exec_()
@@ -85,7 +86,7 @@ Try typing the following strings and pressing RETURN/ENTER: (editingFinished)
     'auto' to change the box to automatic colors.
     'manual' to change the box to manual colors.
     'readonly' to make the box readonly.
-    'disabled' to disable the box.
+    'disable' to disable the box.
     'close' to close the window.
 """
 )
@@ -112,7 +113,7 @@ widget2 = AutoColorLineEdit(
     objectName='widget 2',
     text='error',
     liveErrorChecking=False,
-    errorCheck = detect_error
+    errorCheck=detect_error
 )
 widget2.hasError.connect(lambda: announce_error(widget2))
 widget2.errorCleared.connect(lambda: announce_no_error(widget2))
@@ -130,7 +131,7 @@ Try typing the following strings and pressing RETURN/ENTER: (editingFinished)
     'auto' to change the box to automatic colors.
     'manual' to change the box to manual colors.
     'readonly' to make the box readonly.
-    'disabled' to disable the box.
+    'disable' to disable the box.
     'close' to close the window.
 """
 )
@@ -142,7 +143,7 @@ widget3 = AutoColorLineEdit(
 )
 widget3.setObjectName('widget 3')
 widget3.textChanged.connect(lambda: do_whats_typed(widget3))
-widget3.setColors(('black', 'white'))
+widget3.setManualColors(('black', 'white'))
 widget3.setToolTip(
     """
 Typing DOES NOT cause error checking (liveErrorChecking=False)
@@ -151,7 +152,7 @@ Try typing the following strings: (textChanged)
     'auto' to change the box to automatic colors.
     'manual' to change the box to manual colors.
     'readonly' to make the box readonly.
-    'disabled' to disable the box.
+    'disable' to disable the box.
     'close' to close the window.
 """
 )
