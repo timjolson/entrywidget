@@ -4,7 +4,7 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
 ## Classes:
     
     AutoColorLineEdit  # QLineEdit with automatic colors
-    EntryWidget  # QLineEdit with QComboBox on right side
+    EntryWidget  # AutoColorLineEdit with DictComboBox[QComboBox] on right side
     
 ![alt text](examples/image.png)
 

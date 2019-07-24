@@ -13,13 +13,12 @@ logger.addHandler(logging.NullHandler())
 
 
 def _isColorTuple(colors):
-    """Assert 'colors' matches the format for a colors tuple.
+    """See if 'colors' matches the format for a colors tuple.
 
     :param colors: tuple to check format of
     :return: bool
         False if colors == None
         True if colors == correct format
-        Raises AssertionError if incorrect format
     """
     if colors is None:
         return False
@@ -31,13 +30,12 @@ def _isColorTuple(colors):
 
 
 def _isColorDict(colors):
-    """Assert 'colors' matches the format for a colors dict.
+    """See if 'colors' matches the format for a colors dict.
 
     :param colors: dict to check format of
     :return: bool
-        False if colors=None
-        True if colors= correct format
-        Raises AssertionError if incorrect format
+        False if colors == None
+        True if colors == correct format
     """
     if colors is None:
         return False
@@ -62,8 +60,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         :param errorCheck: callable, returns error status, called with widget as first argument
         :param objectName: str, name of object for logging and within Qt
         :param text: str, starting text
-        :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
-        :param colors: tuple of color strings/QColor/rgb tuples; see help(setManualColors) for formatting
+        :param colors: dict or tuple of colors; see help(setColors) for formatting
         :param readOnly: bool, whether the text box is editable
         :param liveErrorChecking: bool, whether error checking occurs
                     after every keystroke (=True) or only after text editing is finished (=False)
@@ -82,7 +79,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
     }
 
     defaultArgs = {
-        'autoColors': None,
         'colors': None,
         'liveErrorChecking': True,
         'errorCheck': None,
@@ -92,7 +88,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         self._autoColors = self.defaultColors.copy()
         self._liveErrorChecking = kwargs.pop('liveErrorChecking', self.defaultArgs['liveErrorChecking'])
 
-        autoColors = kwargs.pop('autoColors', None)
         colors = kwargs.pop('colors', self.defaultArgs['colors'])
         ec = kwargs.pop('errorCheck', self.defaultArgs['errorCheck'])
 
@@ -102,16 +97,15 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         self.logger = logging.getLogger(self.name)
         self.logger.addHandler(logging.NullHandler())
 
+        # connect signals to do error checking, color updating
         self.textChanged[str].connect(self._onTextChanged)
         self.textChanged[str].connect(lambda o: self.update())
         self.editingFinished.connect(self._onEditingFinished)
         self.errorChanged[object].connect(lambda o: self.update())
 
-        if autoColors:
-            self.setAutoColors(autoColors)
         if colors:
-            self.setManualColors(colors)
-        if not autoColors and not colors:
+            self.setColors(colors)
+        else:
             super().setStyleSheet(self.makeStyleString())
 
         if ec is not None:
@@ -133,7 +127,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
     def getStatus(self):
         """Get widget status for color selection.
 
-        :return: str, key for autoColors[key]
+        :return: str, key for use in colors dict
         """
         if bool(self._error):
             status = 'error'
@@ -153,9 +147,9 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
     def makeStyleString(self, colors=None):
         """Get a styleSheet string built from provided 'colors' or the defaults.
 
-        :param colors: None-> use default autoColors
-            OR str-> key for autoColors dict
-            OR colors dict->use provided colors
+        :param colors: None-> use default colors
+            OR str-> key for colors dict
+            OR colors dict->update stored colors->use provided colors
             OR colors tuple->use provided colors
         :return: str, use in setStyleSheet()
         """
@@ -169,36 +163,33 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             string = ''
             for k, v in colors.items():
                 v0, v1 = v
+                if isinstance(v0, QColor):
+                    v0 = v0.getRgb()[:2]
+                if isinstance(v1, QColor):
+                    v1 = v1.getRgb()[:2]
+
                 if isinstance(v0, tuple):
                     v0 = "rgb{}".format(str(v0[:])).replace(' ', '')
                 if isinstance(v1, tuple):
                     v1 = "rgb{}".format(str(v1[:])).replace(' ', '')
-
                 string += "AutoColorLineEdit[status='" + str(k) + "'] {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
 
         elif _isColorTuple(colors):
             v0, v1 = colors[0], colors[1]
+            if isinstance(v0, QColor):
+                v0 = v0.getRgb()[:2]
+            if isinstance(v1, QColor):
+                v1 = v1.getRgb()[:2]
+
             if isinstance(v0, tuple):
                 v0 = "rgb{}".format(str(v0[:])).replace(' ', '')
             if isinstance(v1, tuple):
                 v1 = "rgb{}".format(str(v1[:])).replace(' ', '')
-
             string = "AutoColorLineEdit {background-color: " + str(v0) + "; color: " + str(v1) + ";}\n"
 
         else:
-            raise TypeError('makeStyleString takes a colors dict (see .setAutoColors for format). ' +
-                            f'You provided: {colors}')
-
+            raise TypeError(f'Invalid format: {type(colors)} {colors}')
         return string
-
-    def setStyleSheet(self, styleSheet):
-        """Set stylesheet, set color control to manual.
-
-        :param styleSheet: str
-        :return:
-        """
-        self.logger.log(logging.DEBUG, f"setStyleSheet({styleSheet})")
-        super().setStyleSheet(styleSheet)
 
     def setLiveErrorChecking(self, mode):
         """Enable or disable liveErrorChecking.
@@ -213,32 +204,12 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             self.setError(self.errorCheck())
 
     def update(self):
-        """Update widget colors if set to automatic."""
-        self.logger.log(logging.DEBUG - 1, "update: status: '%s' error: '%s' disabled: %s readonly: %s text: '%s'"%
+        """Update widget colors"""
+        if self.logger.isEnabledFor(logging.DEBUG-1):
+            self.logger.log(logging.DEBUG - 1, "update: status: '%s' error: '%s' disabled: %s readonly: %s text: '%s'"%
                         (self.status, str(self.getError()), str(not self.isEnabled()), str(self.isReadOnly()), self.text())
                         )
         self.style().polish(self)
-
-    def setManualColors(self, colors=None):
-        """Manually set box's colors. Will remain set until .setAutoColors()
-
-        :param colors: str as key for autoColors dict
-                    OR tuple of colors eg.:
-                        format: (backgroundColor, textColor)
-                        e.g. ('black', '#000000')
-                            ('#FFFFFF', 'white')
-                            (QColor, '#FFFFFF')
-                *if colors is None, uses already stored autoColors['default']
-        :return:
-        """
-        self.logger.debug(f'setManualColors({str(colors)})')
-
-        if colors is None:
-            colors = self._autoColors['default']
-        if _isColorTuple(colors):
-            super().setStyleSheet(self.makeStyleString(colors))
-        else:
-            raise TypeError(f"Provide `None` or a color tuple, not {colors}")
 
     def autoColors(self):
         """Get current color settings dict.
@@ -246,42 +217,47 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         """
         return self._autoColors
 
-    def setAutoColors(self, colors=None):
-        """Set the automatic colors, changes mode to use them until .setManualColors()
-        If colors is `None`, uses already stored automatic colors.
+    def setColors(self, colors=None):
+        """Set the widget's colors.
+        If colors is `None`, uses stored automatic colors.
+        If colors is tuple-like, assigns static colors.
 
+        If colors is a dict (format below), updates the automatic colors,
+            where each key represents a different `widget.status`.
         A custom set of `status`s can be used by overriding `getStatus` and providing a custom dict.
 
         :param colors: dict of tuples of color strings or QColors
-            format:
-            colors={
-                'default': X,           # normal editing mode
-                'blank': X,             # box is editable but blank
-                'disabled': X,          # box is not editable or selectable
-                'readonly': X,          # box is not editable
-                'error': X,             # box is editable and has an error
-                'error-readonly': X     # box is not editable, but has an error
-            }
-            Where each X is the respective color tuple matching format:
-                (backgroundColor, textColor)
-                *see `setManualColors`
-            *all keys are optional, dict will be used to update currently stored autoColors.
+            dict format:
+                *colors={
+                    'default': X,           # normal editing mode
+                    'blank': X,             # box is editable but blank
+                    'disabled': X,          # box is not editable or selectable
+                    'readonly': X,          # box is not editable
+                    'error': X,             # box is editable and has an error
+                    'error-readonly': X     # box is not editable, but has an error
+                }
+                *all keys are optional, dict update currently stored autoColors.
+                Where each X matches the format below.
+
+            tuple format (backgroundColor, textColor):
+                e.g. ('black', QColor)  //  ('#FFFFFF', 'white')  //  (QColor, '#FFFFFF')
         :return:
         """
-        self.logger.debug(f'setAutoColors({str(colors)})')
+        self.logger.debug(f'setColors({str(colors)})')
 
-        # update self._autoColors dict with provided colors
+        # update _autoColors with provided colors
         if _isColorDict(colors):
-            _colors = copy(self._autoColors)
-            _colors.update(colors)
-            self._autoColors = _colors
-            super().setStyleSheet(self.makeStyleString(_colors))
+            self._autoColors.update(colors)
+            colors = self._autoColors
         elif colors is None:
-            super().setStyleSheet(self.makeStyleString(colors))
+            colors = self._autoColors
+        elif _isColorTuple(colors):
+            pass
+        elif isinstance(colors, str):
+            colors = self._autoColors[colors]
         else:
             raise TypeError(f"Provide `None` or a color dict, not {colors}")
-
-        self.update()
+        super().setStyleSheet(self.makeStyleString(colors))
 
     def setReadOnly(self, status):
         """Set the box editable or fixed.
@@ -295,15 +271,15 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         self.setClearButtonEnabled(not status)
         self.update()
 
-    # def setDisabled(self, status=True):
-    #     """Set the box disabled or enabled.
-    #
-    #     :param status: NOT box's enabled status
-    #         True: unselectable, uneditable
-    #         False: selectable (editability dictated by readOnly)
-    #     :return:
-    #     """
-    #     self.setEnabled(not status)
+    def setDisabled(self, status=True):
+        """Set the box disabled or enabled.
+
+        :param status: NOT box's enabled status
+            True: unselectable, uneditable
+            False: selectable (editability dictated by readOnly)
+        :return:
+        """
+        self.setEnabled(not status)
 
     def setEnabled(self, status=True):
         """Set the box disabled or enabled.
@@ -353,8 +329,7 @@ class EntryWidget(QWidget, ErrorMixin):
 
     QLineEdit kwargs
     :param text: str, starting text
-    :param autoColors: dict of tuples of color strings; see help(setAutoColor) for formatting
-    :param colors: tuple of colors; see help(setManualColors) for formatting
+    :param colors: dict or tuple of colors; see help(setColors) for formatting
     :param liveErrorChecking: bool, whether error checking occurs
                 after every keystroke (=True) or only after text editing is finished (=False)
 
@@ -365,26 +340,28 @@ class EntryWidget(QWidget, ErrorMixin):
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
     name = loggableQtName
-
     defaultArgs = AutoColorLineEdit.defaultArgs.copy()
     defaultArgs.update({'options': list(['opt1', 'opt2']), 'optionFixed': False})
 
+    # delegate methods to DictComboBox
+    getSelected, setSelected, setOptionFixed, currentData = \
+        delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled, currentData')
+    setOptions, getOptions = delegated.methods('comboBox', 'setAllItems, allItems')
+    options = property(getOptions, setOptions)
+
+    # delegate methods to AutoColorLineEdit
+    text, setText = delegated.methods('lineEdit', 'text, setText')
+    clear, setClearButtonEnabled = delegated.methods('lineEdit', 'clear setClearButtonEnabled')
+    setColors = delegated.methods('lineEdit', 'setColors')
+    setLiveErrorChecking = delegated.methods('lineEdit', 'setLiveErrorChecking')
+
+    # delegate AutoColorLineEdit signals
+    textChanged, editingFinished, textEdited = delegated.attributes('lineEdit', 'textChanged, editingFinished, textEdited')
+
+    # signals that will be triggered by DictComboBox
     optionChanged = pyqtSignal([],[str])
     optionIndexChanged = pyqtSignal([],[int])
     dataChanged = Qt.pyqtSignal([], [object])
-
-    getSelected, setSelected, setOptionFixed, currentData = \
-        delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled, currentData')
-
-    # explicitly delegate methods to QLineEdit
-    text = delegated.methods('lineEdit', 'text')
-    clear, setClearButtonEnabled = delegated.methods('lineEdit', 'clear setClearButtonEnabled')
-    setText = delegated.methods('lineEdit', 'setText')
-    setManualColors, setAutoColors = delegated.methods('lineEdit', 'setManualColors, setAutoColors')
-    setLiveErrorChecking = delegated.methods('lineEdit', 'setLiveErrorChecking')
-
-    # delegate QLineEdit signals
-    textChanged, editingFinished, textEdited = delegated.attributes('lineEdit', 'textChanged, editingFinished, textEdited')
 
     def __init__(self, parent=None, **kwargs):
         options = kwargs.pop('options', self.defaultArgs['options'])
@@ -394,7 +371,7 @@ class EntryWidget(QWidget, ErrorMixin):
         QWidget.__init__(self, parent=parent)
         ErrorMixin.__init__(self)
 
-        # connect custom signals to simpler signals
+        # connect custom signals to simpler versions
         self.optionChanged[str].connect(lambda o: self.optionChanged.emit())
         self.optionIndexChanged[int].connect(lambda o: self.optionIndexChanged.emit())
         self.dataChanged[object].connect(lambda o: self.dataChanged.emit())
@@ -427,23 +404,6 @@ class EntryWidget(QWidget, ErrorMixin):
         self.optionChanged[str].emit(text)
         self.optionIndexChanged[int].emit(self.comboBox.currentIndex())
         self.dataChanged[object].emit(self.currentData())
-
-    def getOptions(self):
-        """Get list of DictComboBox options.
-
-        :return: [option_strings]
-        """
-        return self.comboBox.allItems()
-    options = getOptions
-
-    def setOptions(self, options):
-        """Set list of DictComboBox options.
-
-        :param options: iterable of strings
-        :return:
-        """
-        self.logger.debug(f'setOptions({str(options)})')
-        self.comboBox.setAllItems(options)
 
     def optionFixed(self):
         return not self.comboBox.isEnabled()

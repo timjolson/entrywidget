@@ -27,7 +27,7 @@ def print_entered_text(w):
 def do_whats_typed(w):
     if w.text() == 'auto':
         print(w.name + ": Changing to Automatic colors")
-        w.setAutoColors()
+        w.setColors()
     if w.text() == 'manual':
         print(w.name + ": Changing to Manual colors")
         w.setManualColors(('black', 'white'))

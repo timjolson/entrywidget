@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='entrywidget',
-    version="0.7",
+    version="0.9",
     packages = find_packages(),
     install_requires = ['PyQt5'],
     dependency_links = [
