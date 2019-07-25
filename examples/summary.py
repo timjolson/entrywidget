@@ -16,10 +16,6 @@ def check_error_typed(widget):
         return 'ERROR'
     return False
 
-def show_mouse_click(widget):
-    """Uses widget.setText() to show if mouse click was Left or Right Click"""
-    widget.setText('clicked')
-
 def change_color_on_option(widget):
     """Uses widget.setManualColors() to change QLineEdit colors to (widget.getSelected(), 'black')"""
     print('change_color to', widget.getSelected())
