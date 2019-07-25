@@ -397,6 +397,8 @@ class EntryWidget(QWidget, ErrorMixin):
         combo.currentTextChanged.connect(self._onOptionChanged)
         combo.setDisabled(optionFixed)
         # combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
+        combo.currentIndexChanged[int].connect(self.optionIndexChanged[int].emit)
+        combo.currentTextChanged[str].connect(self.optionChanged[str].emit)
 
         layout = QHBoxLayout(self)
         layout.addWidget(lineEdit)
@@ -409,8 +411,6 @@ class EntryWidget(QWidget, ErrorMixin):
     def _onOptionChanged(self, text):
         self.logger.log(logging.DEBUG-1, f"optionChanged('{text}')")
         self.setError(self.errorCheck())
-        self.optionChanged[str].emit(text)
-        self.optionIndexChanged[int].emit(self.comboBox.currentIndex())
         self.dataChanged[object].emit(self.currentData())
 
     def optionFixed(self):

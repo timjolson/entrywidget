@@ -15,7 +15,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 # <editor-fold desc="Support Funcs">
 def change_color_on_option(entry_widget):
     print('change_color to', entry_widget.getSelected())
-    entry_widget.setManualColors((entry_widget.getSelected(), 'black'))
+    entry_widget.setColors((entry_widget.getSelected(), 'black'))
 # </editor-fold>
 
 
@@ -33,8 +33,9 @@ widget.show()
 app.exec_()
 
 print("\n----------------------- Select a Color")
-widget = EntryWidget(options=['white', 'red', 'blue', 'orange'], text='pick a color')
+widget = EntryWidget(options=['orange', 'red', 'blue', 'white'], text='pick a color')
 widget.optionChanged.connect(lambda: change_color_on_option(widget))
+widget.setSelected('orange')  # update widget to a color
 widget.setWindowTitle('Select a Color')
 widget.show()
 app.exec_()
