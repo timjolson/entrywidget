@@ -30,12 +30,12 @@ def do_whats_typed(w):
         w.setColors()
     if w.text() == 'manual':
         print(w.name + ": Changing to Manual colors")
-        w.setManualColors(('black', 'white'))
+        w.setColors(('black', 'white'))
     if w.text() == 'readonly':
         w.setReadOnly(True)
         print(w.name + ': Entry is ReadOnly')
     if w.text() == 'disable':
-        w.setDisabled()
+        w.setDisabled(True)
         print(w.name + ': Entry is Disabled')
     if w.text() == 'close':
         print(w.name + ': Closing Window')
@@ -56,6 +56,7 @@ app.exec_()
 widgetDefault = AutoColorLineEdit(liveErrorChecking=False, errorCheck=detect_error)
 widgetDefault.setText("Type 'error', press ENTER")
 widgetDefault.setWindowTitle("liveErrorChecking=False")
+widgetDefault.hasError.connect(lambda: announce_error(widgetDefault))
 widgetDefault.errorCleared.connect(lambda: announce_no_error(widgetDefault))
 widgetDefault.setMinimumWidth(250)
 widgetDefault.show()
@@ -143,7 +144,7 @@ widget3 = AutoColorLineEdit(
 )
 widget3.setObjectName('widget 3')
 widget3.textChanged.connect(lambda: do_whats_typed(widget3))
-widget3.setManualColors(('black', 'white'))
+widget3.setColors(('black', 'white'))
 widget3.setToolTip(
     """
 Typing DOES NOT cause error checking (liveErrorChecking=False)

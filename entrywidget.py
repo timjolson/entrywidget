@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QLineEdit, QWidget, QHBoxLayout
 from PyQt5.QtCore import pyqtProperty, pyqtSignal
 from PyQt5 import Qt, QtCore
 from PyQt5.QtGui import QColor
-from copy import copy
 from qt_utils import loggableQtName, ErrorMixin
 from qt_utils.widgets import DictComboBox
 from generalUtils.delegated import delegated
@@ -100,7 +99,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
 
         # connect signals to do error checking, color updating
         self.textChanged[str].connect(self._onTextChanged)
-        self.textChanged[str].connect(lambda o: self.update())
+        # self.textChanged[str].connect(lambda o: self.update())
         self.editingFinished.connect(self._onEditingFinished)
         self.errorChanged[object].connect(lambda o: self.update())
 
@@ -124,6 +123,8 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             err = self.errorCheck()
             if err != self.getError():
                 self.setError(err)
+                return
+        self.update()
 
     def getStatus(self):
         """Get widget status for color selection.
@@ -154,7 +155,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             OR colors tuple->use provided colors
         :return: str, use in setStyleSheet()
         """
-        self.logger.log(logging.DEBUG - 1, f"makeStyleString({colors})")
+        # self.logger.log(logging.DEBUG - 1, f"makeStyleString({colors})")
         if colors is None:
             colors = self._autoColors
         elif isinstance(colors, str):
@@ -305,7 +306,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         return args
 
 
-class EntryWidget(QWidget, ErrorMixin):
+class EntryWidget(QWidget):
     """A DictComboBox after an AutoColorLineEdit.
     DictComboBox (.comboBox):
         Set options with obj.setOptions(['opt1', 'opt2', 'op3'])
@@ -343,75 +344,69 @@ class EntryWidget(QWidget, ErrorMixin):
     name = loggableQtName
     defaultColors = AutoColorLineEdit.defaultColors.copy()
     defaultArgs = AutoColorLineEdit.defaultArgs.copy()
-    defaultArgs.update({'options': list(['opt1', 'opt2']), 'optionFixed': False})
+    defaultArgs.update({'options': {'opt1':'opt1 Data', 'opt2':'opt2 Data'}, 'optionFixed': False})
 
     # delegate methods to DictComboBox
     getSelected, setSelected, setOptionFixed, currentData = \
         delegated.methods('comboBox', 'currentText, setCurrentText, setDisabled, currentData')
-    getOptions = delegated.methods('comboBox', 'allItems')
-    setOptions = delegated.methods('comboBox', 'setAllItems')
+    getOptions, setOptions = delegated.methods('comboBox', 'allItems setAllItems')
 
     # delegate methods to AutoColorLineEdit
     text, setText = delegated.methods('lineEdit', 'text, setText')
     clear, setClearButtonEnabled = delegated.methods('lineEdit', 'clear setClearButtonEnabled')
-    setColors = delegated.methods('lineEdit', 'setColors')
-    setLiveErrorChecking = delegated.methods('lineEdit', 'setLiveErrorChecking')
-    setError, getError, hasError = delegated.methods('lineEdit', 'setError, getError, hasError')
+    setColors, setLiveErrorChecking = delegated.methods('lineEdit', 'setColors, setLiveErrorChecking')
+    setError, getError, clearError = delegated.methods('lineEdit', 'setError, getError, clearError')
+    errorCheck = delegated.methods('lineEdit', 'errorCheck')
 
     # delegate AutoColorLineEdit signals
     textChanged, editingFinished, textEdited = delegated.attributes('lineEdit', 'textChanged, editingFinished, textEdited')
+    hasError, errorCleared, errorChanged = delegated.attributes('lineEdit', 'hasError, errorCleared, errorChanged')
 
-    # signals that will be triggered by DictComboBox
-    optionChanged = pyqtSignal([],[str])
-    optionIndexChanged = pyqtSignal([],[int])
-    dataChanged = Qt.pyqtSignal([], [object], [str])
+    # delegate DictComboBox signals
+    dataChanged = delegated.attribute('comboBox', 'dataChanged')
+    # signals triggered by DictComboBox (re-emitted to allow multiple formats)
+    optionChanged = pyqtSignal([],[str])  # currentTextChanged
+    optionIndexChanged = pyqtSignal([],[int])  # currentIndexChanged
 
     def __init__(self, parent=None, **kwargs):
-        options = kwargs.pop('options', self.defaultArgs['options'])
-        optionFixed = kwargs.pop('optionFixed', self.defaultArgs['optionFixed'])
-        self._isReadOnly = readOnly = kwargs.pop('readOnly', False)
-
         QWidget.__init__(self, parent=parent)
-        ErrorMixin.__init__(self)
-
-        self.setupUi(options, optionFixed, kwargs)
-
+        readOnly = kwargs.pop('readOnly', False)
+        self.setupUi(kwargs)
         if readOnly:
             self.setReadOnly(readOnly)
 
-    def setupUi(self, options, optionFixed, kwargs):
+    def setupUi(self, kwargs):
+        options = kwargs.pop('options', self.defaultArgs['options'])
+        optionFixed = kwargs.pop('optionFixed', self.defaultArgs['optionFixed'])
+
         # connect custom signals to simpler versions
         self.optionChanged[str].connect(lambda o: self.optionChanged.emit())
         self.optionIndexChanged[int].connect(lambda o: self.optionIndexChanged.emit())
-        self.dataChanged[object].connect(lambda o: self.dataChanged[str].emit(str(object)))
-        self.dataChanged[object].connect(lambda o: self.dataChanged.emit())
 
         self.logger = logging.getLogger(self.name)
         self.logger.addHandler(logging.NullHandler())
 
-        leargs = AutoColorLineEdit.popArgs(kwargs)
-        leargs.setdefault('errorCheck', self.errorCheck)
-        lineEdit = AutoColorLineEdit(parent=self, **leargs)
+        ec = kwargs.pop('errorCheck', None)
+        self.lineEdit = lineEdit = AutoColorLineEdit(parent=self, **kwargs)
+        # set errorCheck after construction to prevent errors
+        self.lineEdit.errorCheck = self.errorCheck if ec is None else (lambda: ec(self))
 
-        combo = DictComboBox(parent=self, options=options)
-        combo.currentTextChanged.connect(self._onOptionChanged)
+        self.comboBox = combo = DictComboBox(parent=self, options=options)
         combo.setDisabled(optionFixed)
         # combo.setSizeAdjustPolicy(DictComboBox.AdjustToContents)
         combo.currentIndexChanged[int].connect(self.optionIndexChanged[int].emit)
         combo.currentTextChanged[str].connect(self.optionChanged[str].emit)
+        combo.currentTextChanged[str].connect(self._onOptionChanged)
 
         layout = QHBoxLayout(self)
         layout.addWidget(lineEdit)
         layout.addWidget(combo)
         layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
-        self.comboBox = combo
-        self.lineEdit = lineEdit
 
     def _onOptionChanged(self, text):
         self.logger.log(logging.DEBUG-1, f"optionChanged('{text}')")
         self.setError(self.errorCheck())
-        self.dataChanged[object].emit(self.currentData())
 
     def optionFixed(self):
         return not self.comboBox.isEnabled()
@@ -426,8 +421,7 @@ class EntryWidget(QWidget, ErrorMixin):
         """
         self.logger.debug(f'setEnabled({str(status)})')
         self.comboBox.setEnabled(status)
-        self.lineEdit.setEnabled(status)  # QLineEdit, refreshColors()
-        self._isReadOnly = not status
+        self.lineEdit.setEnabled(status)
 
     def setReadOnly(self, status):
         """Set the box editable or fixed.
@@ -438,31 +432,11 @@ class EntryWidget(QWidget, ErrorMixin):
         :return:
         """
         self.logger.debug(f'setReadOnly({str(status)})')
-        self.setOptionFixed(status)
-        self.lineEdit.setReadOnly(status)  # QLineEdit, refreshColors()
-        self._isReadOnly = status
+        self.comboBox.setEnabled(not status)
+        self.lineEdit.setReadOnly(status)
 
     def isReadOnly(self):
-        return self._isReadOnly
-
-    # def __getattr__(self, item):
-    #     exc = None
-    #     try:
-    #         return self.__dict__[item]
-    #     except KeyError:
-    #         print('getitem', item)
-    #         exc = AttributeError(f"'{type(self)}' object has no attribute '{item}'")
-    #     try:
-    #         return getattr(self.lineEdit, item)
-    #     except AttributeError:
-    #         print('getitem', 'lineEdit', item)
-    #         pass
-    #     try:
-    #         return getattr(self.comboBox, item)
-    #     except AttributeError:
-    #         print('getitem', 'comboBox', item)
-    #         pass
-    #     raise exc
+        return self.lineEdit.isReadOnly() and (not self.comboBox.isEnabled())
 
 
 __all__ = ['AutoColorLineEdit', 'EntryWidget']

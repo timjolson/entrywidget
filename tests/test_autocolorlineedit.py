@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import QApplication
 # logging stuff
 import logging
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG-1)
 testlogger = logging.getLogger('testLogger')
 app = QApplication(sys.argv)
 
@@ -151,7 +151,7 @@ def test_styleSheet(qtbot):
     assert getCurrentColor(widget, 'Background').names[0] == 'blue'
 
 
-def test_setAutoColors(qtbot):
+def test_autoColors(qtbot):
     widget = AutoColorLineEdit()
     show(locals())
     widget.setColors(test_color_dict_good)

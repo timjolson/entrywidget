@@ -100,7 +100,7 @@ def test_setEnabled(qtbot):
     show(locals())
     widget.setEnabled(False)
     assert widget.lineEdit.isEnabled() is False
-    assert widget.isReadOnly() is True
+    assert widget.isReadOnly() is False
     assert widget.comboBox.isEnabled() is False
     assert widget.optionFixed() is True
 
@@ -191,6 +191,23 @@ def test_errorCheck(qtbot):
     qtbot.keyPress(widget.lineEdit, QtCore.Qt.Key_Return)
     assert widget.getError() is False
     assert getCurrentColor(widget.lineEdit, 'Window').names[0] == widget.defaultColors['default'][0]
+
+
+def test_errorCheck_with_combobox(qtbot):
+    widget = EntryWidget(errorCheck=check_text_matches_option, options=['a', 'b'])
+    show(locals())
+    qtbot.keyClicks(widget.lineEdit, 'b')
+    assert widget.getError() is False
+    qtbot.keyPress(widget.lineEdit, QtCore.Qt.Key_Backspace)
+    qtbot.keyPress(widget.lineEdit, 'a')
+    assert widget.getError() is True
+    assert getCurrentColor(widget.lineEdit, 'Window').names[0] == widget.defaultColors['error'][0]
+    widget.setSelected('b')
+    assert widget.getError() is False
+    qtbot.keyPress(widget.lineEdit, QtCore.Qt.Key_Backspace)
+    qtbot.keyPress(widget.lineEdit, 'b')
+    assert widget.getError() is True
+    assert getCurrentColor(widget.lineEdit, 'Window').names[0] == widget.defaultColors['error'][0]
 
 
 def test_hasError(qtbot):
