@@ -99,7 +99,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
 
         # connect signals to do error checking, color updating
         self.textChanged[str].connect(self._onTextChanged)
-        # self.textChanged[str].connect(lambda o: self.update())
         self.editingFinished.connect(self._onEditingFinished)
         self.errorChanged[object].connect(lambda o: self.update())
 
@@ -155,7 +154,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             OR colors tuple->use provided colors
         :return: str, use in setStyleSheet()
         """
-        # self.logger.log(logging.DEBUG - 1, f"makeStyleString({colors})")
         if colors is None:
             colors = self._autoColors
         elif isinstance(colors, str):
@@ -199,7 +197,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         :param mode: bool
         :return:
         """
-        self.logger.log(logging.DEBUG, f'setLiveErrorChecking({mode})')
         self._liveErrorChecking = mode
 
         if mode is True:
@@ -207,10 +204,9 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
 
     def update(self):
         """Update widget colors"""
-        if self.logger.isEnabledFor(logging.DEBUG-1):
-            self.logger.log(logging.DEBUG - 1, "update: status: '%s' error: '%s' disabled: %s readonly: %s text: '%s'"%
-                        (self.status, str(self.getError()), str(not self.isEnabled()), str(self.isReadOnly()), self.text())
-                        )
+        # self.logger.log(logging.DEBUG - 1, "update: status: '%s' error: '%s' disabled: %s readonly: %s text: '%s'"%
+        #             (self.status, str(self.getError()), str(not self.isEnabled()), str(self.isReadOnly()), self.text())
+        #             )
         self.style().polish(self)
 
     def autoColors(self):
@@ -245,8 +241,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
                 e.g. ('black', QColor)  //  ('#FFFFFF', 'white')  //  (QColor, '#FFFFFF')
         :return:
         """
-        self.logger.debug(f'setColors({str(colors)})')
-
         # update _autoColors with provided colors
         if _isColorDict(colors):
             self._autoColors.update(colors)
@@ -258,7 +252,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         elif isinstance(colors, str):
             colors = self._autoColors[colors]
         else:
-            raise TypeError(f"Provide `None` or a color dict, not {colors}")
+            raise TypeError(f"Provide `None`, color dict, color tuple, or str; not {colors}")
         super().setStyleSheet(self.makeStyleString(colors))
 
     def setReadOnly(self, status):
@@ -267,8 +261,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         :param status: box's editable status
         :return:
         """
-        self.logger.debug(f'setReadOnly({str(status)})')
-
         super().setReadOnly(status)
         self.setClearButtonEnabled(not status)
         self.update()
@@ -291,8 +283,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             False: unselectable, uneditable
         :return:
         """
-        self.logger.debug(f'setEnabled({str(status)})')
-
         super().setEnabled(status)
         self.setClearButtonEnabled(status)
         self.update()
@@ -419,7 +409,6 @@ class EntryWidget(QWidget):
             False: unselectable, uneditable
         :return:
         """
-        self.logger.debug(f'setEnabled({str(status)})')
         self.comboBox.setEnabled(status)
         self.lineEdit.setEnabled(status)
 
@@ -431,7 +420,6 @@ class EntryWidget(QWidget):
             False: editable
         :return:
         """
-        self.logger.debug(f'setReadOnly({str(status)})')
         self.comboBox.setEnabled(not status)
         self.lineEdit.setReadOnly(status)
 
