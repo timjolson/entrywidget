@@ -108,18 +108,23 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             super().setStyleSheet(self.makeStyleString())
 
         if ec is not None:
-            self.errorCheck = lambda: ec(self)
-        self._error = self.errorCheck()
+            self.errorCheck = ec
+        self._error = None
+
+    def show(self):
+        # errorCheck when first shown instead of in __init__
+        self.setError(self.errorCheck(self))
+        QLineEdit.show(self)
 
     def _onEditingFinished(self):
         self.logger.log(logging.DEBUG-1, 'editingFinished()')
-        self.setError(self.errorCheck())
+        self.setError(self.errorCheck(self))
 
     def _onTextChanged(self, text):
         self.logger.log(logging.DEBUG-1, f"textChanged('{text}')")
 
         if self._liveErrorChecking is True:
-            err = self.errorCheck()
+            err = self.errorCheck(self)
             if err != self.getError():
                 self.setError(err)
                 return
@@ -200,7 +205,7 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         self._liveErrorChecking = mode
 
         if mode is True:
-            self.setError(self.errorCheck())
+            self.setError(self.errorCheck(self))
 
     def update(self):
         """Update widget colors"""
@@ -376,10 +381,10 @@ class EntryWidget(QWidget):
         self.logger = logging.getLogger(self.name)
         self.logger.addHandler(logging.NullHandler())
 
-        ec = kwargs.pop('errorCheck', None)
+        ec = kwargs.get('errorCheck', None)
+        if ec is not None:
+            kwargs['errorCheck'] = lambda s: ec(self)
         self.lineEdit = lineEdit = AutoColorLineEdit(parent=self, **kwargs)
-        # set errorCheck after construction to prevent errors
-        self.lineEdit.errorCheck = self.errorCheck if ec is None else (lambda: ec(self))
 
         self.comboBox = combo = DictComboBox(parent=self, options=options)
         combo.setDisabled(optionFixed)
@@ -396,7 +401,7 @@ class EntryWidget(QWidget):
 
     def _onOptionChanged(self, text):
         self.logger.log(logging.DEBUG-1, f"optionChanged('{text}')")
-        self.setError(self.errorCheck())
+        self.setError(self.errorCheck(self))
 
     def optionFixed(self):
         return not self.comboBox.isEnabled()
