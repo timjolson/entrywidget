@@ -351,6 +351,7 @@ class EntryWidget(QWidget):
 
     # delegate methods to AutoColorLineEdit
     text, setText = delegated.methods('lineEdit', 'text, setText')
+    text_ = pyqtProperty(str, lambda s: s.lineEdit.text(), lambda s, t: s.lineEdit.setText(t))
     clear, setClearButtonEnabled = delegated.methods('lineEdit', 'clear setClearButtonEnabled')
     setColors, setLiveErrorChecking = delegated.methods('lineEdit', 'setColors, setLiveErrorChecking')
     setError, getError, clearError = delegated.methods('lineEdit', 'setError, getError, clearError')
