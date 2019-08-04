@@ -108,13 +108,12 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
             super().setStyleSheet(self.makeStyleString())
 
         if ec is not None:
-            self.errorCheck = ec
-        self._error = None
+            self.errorCheck = lambda s: ec(self)
 
-    def show(self):
-        # errorCheck when first shown instead of in __init__
-        self.setError(self.errorCheck(self))
-        QLineEdit.show(self)
+        try:
+            self.setError(self.errorCheck(self))
+        except:
+            pass
 
     def _onEditingFinished(self):
         self.logger.log(logging.DEBUG-1, 'editingFinished()')
@@ -337,6 +336,10 @@ class EntryWidget(QWidget):
     written by Tim Olson - timjolson@user.noreplay.github.com
     """
     name = loggableQtName
+    errorChanged = ErrorMixin.errorChanged
+    errorCleared = ErrorMixin.errorCleared
+    hasError = ErrorMixin.hasError
+
     defaultColors = AutoColorLineEdit.defaultColors.copy()
     defaultArgs = AutoColorLineEdit.defaultArgs.copy()
     defaultArgs.update({'options': {'opt1':'opt1 Data', 'opt2':'opt2 Data'}, 'optionFixed': False})
@@ -351,11 +354,9 @@ class EntryWidget(QWidget):
     clear, setClearButtonEnabled = delegated.methods('lineEdit', 'clear setClearButtonEnabled')
     setColors, setLiveErrorChecking = delegated.methods('lineEdit', 'setColors, setLiveErrorChecking')
     setError, getError, clearError = delegated.methods('lineEdit', 'setError, getError, clearError')
-    errorCheck = delegated.methods('lineEdit', 'errorCheck')
 
     # delegate AutoColorLineEdit signals
     textChanged, editingFinished, textEdited = delegated.attributes('lineEdit', 'textChanged, editingFinished, textEdited')
-    hasError, errorCleared, errorChanged = delegated.attributes('lineEdit', 'hasError, errorCleared, errorChanged')
 
     # delegate DictComboBox signals
     dataChanged = delegated.attribute('comboBox', 'dataChanged')
@@ -370,11 +371,20 @@ class EntryWidget(QWidget):
         if readOnly:
             self.setReadOnly(readOnly)
 
+        try:
+            self.setError(self.errorCheck(self))
+        except:
+            pass
+
     def setupUi(self, kwargs):
         options = kwargs.pop('options', self.defaultArgs['options'])
         optionFixed = kwargs.pop('optionFixed', self.defaultArgs['optionFixed'])
 
-        # connect custom signals to simpler versions
+        # connect signals to simpler versions
+        self.errorChanged[object].connect(lambda o: self.errorChanged[str].emit(str(o)))
+        self.errorChanged[object].connect(lambda o: self.errorChanged.emit())
+        self.hasError[object].connect(lambda o: self.hasError[str].emit(str(o)))
+        self.hasError[object].connect(lambda o: self.hasError.emit())
         self.optionChanged[str].connect(lambda o: self.optionChanged.emit())
         self.optionIndexChanged[int].connect(lambda o: self.optionIndexChanged.emit())
 
@@ -385,6 +395,9 @@ class EntryWidget(QWidget):
         if ec is not None:
             kwargs['errorCheck'] = lambda s: ec(self)
         self.lineEdit = lineEdit = AutoColorLineEdit(parent=self, **kwargs)
+        lineEdit.errorCleared.connect(self.errorCleared.emit)
+        lineEdit.errorChanged[object].connect(self.errorChanged[object].emit)
+        lineEdit.hasError[object].connect(self.hasError[object].emit)
 
         self.comboBox = combo = DictComboBox(parent=self, options=options)
         combo.setDisabled(optionFixed)
@@ -398,6 +411,10 @@ class EntryWidget(QWidget):
         layout.addWidget(combo)
         layout.setContentsMargins(0,0,0,0)
         self.setLayout(layout)
+
+    @staticmethod
+    def errorCheck(self):
+        return self.lineEdit.errorCheck(self)
 
     def _onOptionChanged(self, text):
         self.logger.log(logging.DEBUG-1, f"optionChanged('{text}')")

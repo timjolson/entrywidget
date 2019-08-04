@@ -177,13 +177,13 @@ def test_errorCheck_live(qtbot):
 def test_errorCheck(qtbot):
     widget = EntryWidget(liveErrorChecking=False, errorCheck=check_error_typed)
     show(locals())
-    assert widget.getError() is None
+    assert widget.getError() is False
     logging.debug('typing...')
     qtbot.keyClicks(widget.lineEdit, 'erro')
-    assert widget.getError() is None
+    assert widget.getError() is False
     qtbot.keyClicks(widget.lineEdit, 'r')
     logging.debug('finished typing...')
-    assert widget.getError() is None
+    assert widget.getError() is False
     qtbot.keyPress(widget.lineEdit, QtCore.Qt.Key_Return)
     assert widget.getError() == 'ERROR'
     assert getCurrentColor(widget.lineEdit, 'Window').names[0] == widget.defaultColors['error'][0]
@@ -216,7 +216,7 @@ def test_hasError(qtbot):
     widget.hasError.connect(lambda: set_title_on_error(widget))
     show(locals())
 
-    assert widget.getError() is None
+    assert widget.getError() is False
     widget.setError(False)
     assert widget.getError() is False
     widget.setError(True)
