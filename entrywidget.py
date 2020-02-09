@@ -63,8 +63,6 @@ class AutoColorLineEdit(QLineEdit, ErrorMixin):
         :param readOnly: bool, whether the text box is editable
         :param liveErrorChecking: bool, whether error checking occurs
                     after every keystroke (=True) or only after text editing is finished (=False)
-
-        written by Tim Olson - timjolson@user.noreplay.github.com
         """
     name = loggableQtName
 
@@ -332,8 +330,6 @@ class EntryWidget(QWidget):
     DictComboBox kwargs
     :param options: [str, str, ...] or {str:data, str:data, ...}
     :param optionFixed: bool, whether option is fixed or can be changed
-
-    written by Tim Olson - timjolson@user.noreplay.github.com
     """
     name = loggableQtName
     errorChanged = ErrorMixin.errorChanged
