@@ -4,11 +4,18 @@ from PyQt5 import Qt, QtCore
 from PyQt5.QtGui import QColor
 from qt_utils import loggableQtName, ErrorMixin
 from qt_utils.widgets import DictComboBox
-from generalUtils.delegated import delegated
+from delegated import delegated
 import logging
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
+
+def mkQApp(*args):
+    qa = QApplication.instance()
+    if qa is None:
+        qa = QApplication(list(args))
+    return qa
 
 
 def _isColorTuple(colors):
@@ -445,6 +452,7 @@ class EntryWidget(QWidget):
     def isReadOnly(self):
         return self.lineEdit.isReadOnly() and (not self.comboBox.isEnabled())
 
+    mkQApp = mkQApp
 
 __all__ = ['AutoColorLineEdit', 'EntryWidget']
 
