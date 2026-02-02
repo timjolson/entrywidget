@@ -1,0 +1,23 @@
+[project]
+name = "entrywidget"
+version = "0.9"
+authors = [
+    { name = "timjolson", email = "timjolson@users.noreply.github.com" }
+]
+description = "Entry widget package"
+requires-python = ">=3.6"
+dependencies = [
+    "PyQt5",
+    "generalutils @ git+https://github.com/timjolson/generalutils.git",
+    "qt_utils @ git+https://github.com/timjolson/qt_utils.git"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-qt"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
