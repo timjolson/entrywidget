@@ -4,6 +4,8 @@ version = "0.9"
 authors = [
     { name = "timjolson", email = "timjolson@users.noreply.github.com" }
 ]
+readme = "README.md"
+license = { file = "LICENSE" }
 description = "Entry widget package"
 requires-python = ">=3.6"
 dependencies = [
@@ -11,6 +13,8 @@ dependencies = [
     "generalutils @ git+https://github.com/timjolson/generalutils.git",
     "qt_utils @ git+https://github.com/timjolson/qt_utils.git"
 ]
+
+urls = { "Homepage" = "https://github.com/timjolson/entrywidget" }
 
 [project.optional-dependencies]
 test = [

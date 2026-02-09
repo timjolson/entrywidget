@@ -71,3 +71,7 @@ Data entry PyQt5 QWidget subclasses, for error checking with automatic colors.
     :param options: [str, str, ...] or {str:data, str:data, ...}
     :param optionFixed: bool, whether option is fixed or can be changed
 
+
+## License
+
+See [LICENSE](LICENSE) for details.
